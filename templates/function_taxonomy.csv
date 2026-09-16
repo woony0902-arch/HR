@@ -1,0 +1,5 @@
+function_code,function_name_l1,function_name_l2,description,is_legally_required
+F-HR-01,인사,인사기획·제도,인사제도 설계 및 개정,N
+F-HR-02,인사,채용,채용 기획 및 실행,N
+F-FIN-01,재무,자금관리,자금 조달 및 운용,N
+F-LEG-01,법무,준법감시,컴플라이언스 모니터링,Y

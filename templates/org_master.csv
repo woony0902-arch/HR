@@ -1,0 +1,4 @@
+org_code,org_name,parent_org_code,level,leader_emp_id,created_date,abolished_date,cost_center,note
+ORG0001,경영지원본부,,본부,E00012,2019-01-01,,CC100,
+ORG0010,인사담당,ORG0001,담당,E00045,2019-01-01,,CC110,
+ORG0011,인사기획팀,ORG0010,팀,E00102,2021-07-01,,CC111,

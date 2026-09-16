@@ -1,0 +1,3 @@
+snapshot_date,org_code,org_name,parent_org_code,level,headcount,change_type,related_org_code
+2024-01-01,ORG0011,인사기획팀,ORG0010,팀,6,유지,
+2025-01-01,ORG0011,인사기획팀,ORG0010,팀,8,통합,ORG0013

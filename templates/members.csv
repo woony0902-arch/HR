@@ -1,0 +1,4 @@
+emp_id,org_code,job_family,job_role,grade,hire_date,employment_type,fte,is_leader,concurrent_org_code
+E00102,ORG0011,HR,HR기획,책임,2018-03-02,정규직,1.0,Y,
+E00103,ORG0011,HR,인사운영,선임,2021-09-01,정규직,1.0,N,
+E00104,ORG0011,DATA,HR데이터분석,선임,2022-04-01,정규직,0.5,N,ORG0020
