@@ -14,6 +14,7 @@ import yaml
 
 from .config import Config, ROLE_MEMBER, ROLE_TEAM
 from . import structure
+from .geography import UNKNOWN, load_regions
 
 OPS = {"MERGE", "SPLIT", "MOVE", "ABOLISH", "CREATE", "RENAME"}
 
@@ -384,6 +385,51 @@ def changed_org_profile(result: Result, cfg: Config) -> pd.DataFrame:
         })
     return (pd.DataFrame(rows).sort_values("5년내정년율(%)", ascending=False)
             .reset_index(drop=True) if rows else pd.DataFrame())
+
+
+def cross_region_merges(result: Result, regions_path: str = "config/regions.yaml") -> pd.DataFrame:
+    """서로 다른 지역의 조직을 합친 건을 찾는다.
+
+    전국에 국사·사옥이 있는 구조에서는 조직을 합쳐도 사람은 원래 자리에 남는다.
+    이런 통합은 인력 효율화가 아니라 '관리 단위 통합'이며, 남은 조직장이
+    물리적으로 떨어진 인력을 관리하게 된다는 비용을 동반한다.
+    """
+    regions = load_regions(regions_path)
+    lineage = team_lineage(result)
+    before_names = (result.before.drop_duplicates("team_code")
+                    .set_index("team_code")["team_name"].to_dict())
+    after_names = (result.after.drop_duplicates("team_code")
+                   .set_index("team_code")["team_name"].to_dict())
+
+    grouped: dict[str, list[str]] = {}
+    for source, targets in lineage.items():
+        for target in targets:
+            if source != target:
+                grouped.setdefault(target, []).append(source)
+
+    rows = []
+    for target, sources in grouped.items():
+        if len(sources) < 2:
+            continue
+        # 권역이 아니라 지역(도시) 단위로 본다. 대구와 부산은 같은 영남권이지만 다른 국사다.
+        areas: dict[str, list[str]] = {}
+        zones: set[str] = set()
+        for source in sources:
+            name = before_names.get(source, source)
+            area, zone = regions.infer(name)
+            if area != UNKNOWN:
+                areas.setdefault(area, []).append(name)
+                zones.add(zone)
+        if len(areas) < 2:
+            continue
+        headcount = int((result.after["team_code"] == target).sum())
+        rows.append({
+            "통합 조직": after_names.get(target, target), "인원": headcount,
+            "지역수": len(areas), "권역수": len(zones),
+            "구성": " + ".join(sorted(areas)),
+        })
+    return (pd.DataFrame(rows).sort_values("인원", ascending=False).reset_index(drop=True)
+            if rows else pd.DataFrame())
 
 
 def constraint_check(result: Result, cfg: Config) -> pd.DataFrame:

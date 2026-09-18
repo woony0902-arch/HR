@@ -12,7 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from hrsim import dynamics, functions, loader, quality, report, simulate, structure, workforce
+from hrsim import (dynamics, functions, geography, loader, naming, quality,
+                   report, simulate, structure, workforce)
 from hrsim.config import load_config
 
 
@@ -35,6 +36,9 @@ def diagnose(args) -> None:
     func_dict = functions.load_function_dict(Path(args.config).parent / "function_dict.yaml")
     tagged = functions.tag_functions(roles, func_dict, cfg.roles.get("tagging_types"))
     families = functions.parallel_families(roles, snap)
+    regions = geography.load_regions(Path(args.config).parent / "regions.yaml")
+    conflicts = naming.name_function_conflicts(
+        roles, snap, exclude=functions.parallel_membership(families))
 
     ctx = {
         "base_year": base_year,
@@ -61,6 +65,13 @@ def diagnose(args) -> None:
         "parallel_families": families,
         "duplicates": functions.duplicate_candidates(roles, tagged, snap, cfg, families),
         "gaps": functions.coverage_gaps(tagged, func_dict),
+        "region_profile": geography.region_profile(snap, regions),
+        "region_grid": geography.region_function_grid(snap, regions),
+        "name_role_match": naming.name_role_match(roles, snap),
+        "vague_names": naming.vague_names(snap),
+        "naming_conventions": naming.naming_conventions(snap),
+        "name_conflict_동명이의": conflicts["동명이의"],
+        "name_conflict_이명동의": conflicts["이명동의"],
         "keyword_candidates": functions.keyword_candidates(roles),
         "corpus_terms": functions.corpus_terms(roles),
         "tagged": tagged,
@@ -126,7 +137,8 @@ def run_simulation(args) -> None:
                         simulate.people_impact(result),
                         simulate.function_impact(result, tagged),
                         simulate.constraint_check(result, cfg),
-                        simulate.changed_org_profile(result, cfg)))
+                        simulate.changed_org_profile(result, cfg),
+                        simulate.cross_region_merges(result)))
         plans.append(plan)
 
     if not plans:
@@ -139,7 +151,7 @@ def run_simulation(args) -> None:
 
     print(f"✅ 시뮬레이션 리포트: {path}\n")
     print(comparison.to_string(index=False))
-    for result, _, impact, funcs, violations, _profile in results:
+    for result, _, impact, funcs, violations, _profile, _region in results:
         lost = funcs["기능 결손"]
         print(f"\n[{result.plan.name}] 소속변경 {impact['소속 변경 인원']}명 · "
               f"보임해제 {impact['보임 해제 인원']}명 · "

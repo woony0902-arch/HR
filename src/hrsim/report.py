@@ -36,7 +36,9 @@ COLUMN_LABELS = {
     "risk": "리스크", "reason": "사유", "retiring": "정년도래", "retiring_pct": "정년도래율(%)",
     "median_age": "중위연령", "under_40_pct": "40세미만(%)", "over_50_pct": "50세이상(%)",
     "retire_within_5y": "5년내정년", "retire_year": "정년도래연도", "total": "인원",
-    "function_code": "기능코드", "function_name": "기능", "total_headcount": "투입인원",
+    "function_code": "기능코드", "function_name": "기능",
+    "이름키워드": "이름 키워드", "역할에서_확인": "역할에서 확인", "일치율": "일치율",
+    "실제_대표키워드": "실제 대표 키워드", "total_headcount": "투입인원",
     "teams": "수행 조직", "dispersion": "분산유형",
     "team_a": "팀 A", "team_b": "팀 B", "hq_a": "본부 A", "hq_b": "본부 B",
     "similarity": "역할유사도", "shared_functions": "공유기능",
@@ -192,7 +194,45 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
     add("정년과 과거 이탈률만 적용했을 때의 인원 추이입니다. 개편 필요성의 하한선으로 보시면 됩니다.\n")
     add(_md(ctx["decline"], 20))
 
-    add("\n## 4. 기능 중복 진단\n")
+    add("\n## 4. 지역 조직 구조\n")
+    add("전국 국사·사옥 구조에서는 같은 기능이 여러 지역에 놓이는 것이 정상입니다.\n"
+        "따라서 지역 조직의 검토 단위는 '어느 팀과 어느 팀'이 아니라\n"
+        "**이 기능을 전국 몇 개 단위로 운영할 것인가**입니다.\n")
+    add("\n### 권역별 현황\n")
+    add(_md(ctx["region_profile"], 15))
+    add("\n### 기능별 권역 분포\n")
+    add(_md(ctx["region_grid"], 20))
+    add("\n_조직명에서 추론한 지역입니다. 근무지(사업장·국사) 데이터가 확보되면 실제 값으로 대체해야 합니다._\n")
+
+    add("\n## 5. 조직명과 기능의 정합성\n")
+    add("조직명은 그 조직이 무엇을 하는지 알리는 1차 신호입니다.\n"
+        "이름이 역할을 드러내지 못하거나, 같은 일을 다른 이름으로 부르면 협업 비용이 늘어납니다.\n")
+
+    add("\n### 명명 규칙 일관성\n")
+    add(_md(ctx["naming_conventions"], 10))
+
+    add("\n### 이름과 역할이 어긋난 조직\n")
+    add("조직명의 핵심어가 그 조직의 역할 서술에 실제로 등장하는지 본 것입니다.\n"
+        "일치율이 낮으면 이름만 남고 업무가 바뀌었거나, 이름이 업무 범위를 담지 못하는 경우입니다.\n")
+    match = ctx["name_role_match"]
+    add(_md(match[match["일치율"] < 0.5][
+        ["hq_name", "team_name", "headcount", "이름키워드", "실제_대표키워드", "일치율"]], 25))
+
+    if len(ctx["vague_names"]):
+        add("\n### 기능을 특정할 수 없는 조직명\n")
+        add(_md(ctx["vague_names"], 20))
+
+    if len(ctx["name_conflict_동명이의"]):
+        add("\n### 같은 이름, 다른 역할\n")
+        add(_md(ctx["name_conflict_동명이의"], 15))
+
+    if len(ctx["name_conflict_이명동의"]):
+        add("\n### 같은 역할, 다른 이름\n")
+        add("역할 서술은 매우 닮았는데 조직명에 공통 기능어가 없는 쌍입니다.\n"
+            "같은 기능이 서로 다른 이름으로 불리고 있을 가능성이 있습니다.\n")
+        add(_md(ctx["name_conflict_이명동의"], 15))
+
+    add("\n## 6. 기능 중복 진단\n")
     add("### 전사 기능 지도\n")
     add("한 기능을 몇 개 팀이 나눠 맡고 있는지, 총 몇 명이 투입되어 있는지입니다.\n")
     fmap = ctx["function_map"]
@@ -245,7 +285,7 @@ def simulation_report(results: list, comparison: pd.DataFrame, out_dir: Path) ->
     add(_md(comparison, 30))
 
     for item in results:
-        result, delta, impact, funcs, violations, profile = item
+        result, delta, impact, funcs, violations, profile, cross_region = item
         add(f"\n---\n\n## {result.plan.name}\n")
         if result.plan.description:
             add(f"{result.plan.description}\n")
@@ -273,6 +313,13 @@ def simulation_report(results: list, comparison: pd.DataFrame, out_dir: Path) ->
         add("\n### 개편으로 만들어진 조직의 연령 구조\n")
         add("통합은 사람을 합치는 일입니다. 정년이 몰린 조직끼리 합치면 몇 년 뒤 그 조직이 통째로 빕니다.\n")
         add(_md(profile, 20))
+
+        if len(cross_region):
+            add("\n### ⚠️ 지역 간 통합\n")
+            add("전국에 국사·사옥이 있는 구조에서는 조직을 합쳐도 **사람은 원래 자리에 남습니다.**\n"
+                "아래 통합은 인력 집중이 아니라 관리 단위 통합이며, 남은 조직장이 물리적으로\n"
+                "떨어진 인력을 관리하게 됩니다. 근무지 데이터로 실제 거리를 확인해야 합니다.\n")
+            add(_md(cross_region, 15))
 
         add("\n### 기능 커버리지\n")
         lost = funcs["기능 결손"]
