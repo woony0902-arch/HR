@@ -12,8 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from hrsim import (dynamics, functions, geography, loader, naming, quality,
-                   report, simulate, structure, workforce)
+from hrsim import (dynamics, functions, geography, ledger as ledger_mod, loader,
+                   naming, quality, report, simulate, structure, workforce)
 from hrsim.config import load_config
 
 
@@ -39,6 +39,8 @@ def diagnose(args) -> None:
     regions = geography.load_regions(Path(args.config).parent / "regions.yaml")
     conflicts = naming.name_function_conflicts(
         roles, snap, exclude=functions.parallel_membership(families))
+    book = ledger_mod.Ledger(args.ledger)
+    duplicates = functions.duplicate_candidates(roles, tagged, snap, cfg, families)
 
     ctx = {
         "base_year": base_year,
@@ -63,7 +65,9 @@ def diagnose(args) -> None:
         "gender_profile": workforce.gender_profile(snap),
         "function_map": functions.function_map(tagged, snap),
         "parallel_families": families,
-        "duplicates": functions.duplicate_candidates(roles, tagged, snap, cfg, families),
+        "duplicates": book.annotate_duplicates(duplicates),
+        "pending_duplicates": book.pending_duplicates(duplicates),
+        "decisions": book.to_frame(),
         "gaps": functions.coverage_gaps(tagged, func_dict),
         "region_profile": geography.region_profile(snap, regions),
         "region_grid": geography.region_function_grid(snap, regions),
@@ -94,7 +98,10 @@ def _print_highlights(ctx: dict) -> None:
     print(f"  소규모 팀 {head['small_teams']}개 · 과대 팀 {head['large_teams']}개 "
           f"· 중위 span {head['median_span']} · 최대 span {head['max_span']}")
 
-    dup = ctx["duplicates"]
+    dup = ctx["pending_duplicates"]
+    decided = len(ctx["decisions"])
+    if decided:
+        print(f"  판정 원장: {decided}건 기록됨 · 미판정 후보 {len(dup)}쌍")
     if len(dup):
         print(f"  중복 후보 {len(dup)}쌍 (상위 3)")
         for row in dup.head(3).itertuples():
@@ -164,6 +171,7 @@ def main() -> None:
     parser.add_argument("--config", default="config/columns.yaml")
     parser.add_argument("--data", default="data")
     parser.add_argument("--out", default="output")
+    parser.add_argument("--ledger", default="data/ledger/decisions.csv")
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("diagnose", help="1차 진단 리포트 생성")

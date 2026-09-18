@@ -37,6 +37,8 @@ COLUMN_LABELS = {
     "median_age": "중위연령", "under_40_pct": "40세미만(%)", "over_50_pct": "50세이상(%)",
     "retire_within_5y": "5년내정년", "retire_year": "정년도래연도", "total": "인원",
     "function_code": "기능코드", "function_name": "기능",
+    "kind": "유형", "label": "대상", "verdict": "판정", "reason": "사유",
+    "decided_by": "판정자", "decided_on": "판정일", "machine_verdict": "기계 판정",
     "이름키워드": "이름 키워드", "역할에서_확인": "역할에서 확인", "일치율": "일치율",
     "실제_대표키워드": "실제 대표 키워드", "total_headcount": "투입인원",
     "teams": "수행 조직", "dispersion": "분산유형",
@@ -245,9 +247,18 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
     fam = ctx["parallel_families"]
     add(_md(fam.drop(columns=["codes"]) if "codes" in fam else fam, 15))
 
-    add("\n### 중복 후보 (팀 쌍)\n")
+    decisions = ctx.get("decisions", pd.DataFrame())
+    if len(decisions):
+        add("\n### 이미 판정된 건\n")
+        add("사람이 내린 판단입니다. 같은 논의를 반복하지 않기 위해 여기에 기록합니다.\n")
+        add(_md(decisions[["kind", "label", "verdict", "reason", "decided_by", "decided_on"]], 25))
+
+    add("\n### 중복 후보 — 미판정 건\n")
     add("판정초안은 **참고용**입니다. 진성 중복인지 의도된 분산인지는 반드시 사람이 확정해야 합니다.\n")
-    dup = ctx["duplicates"]
+    if len(decisions):
+        add(f"_전체 후보 {len(ctx['duplicates'])}쌍 중 판정이 끝난 건을 제외한 목록입니다. "
+            "논의 시간은 여기에 쓰시면 됩니다._\n")
+    dup = ctx["pending_duplicates"]
     add(_md(dup[["team_a", "team_b", "hq_a", "hq_b", "similarity", "shared_functions",
                  "headcount_sum", "score", "판정초안"]] if len(dup) else dup, 20))
 

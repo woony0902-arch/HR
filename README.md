@@ -19,7 +19,15 @@ pip install -r requirements.txt
 python3 scripts/make_sample_data.py      # 합성 데이터 생성 (실제 자료 없이 검증용)
 python3 run.py diagnose                  # 1차 진단 리포트
 python3 run.py simulate plans/*.yaml     # 개편 시나리오 시뮬레이션
+
+# 판정 기록 — 세션 중에 내린 판단을 남긴다
+python3 scripts/record_decision.py --kind 중복후보 --target "A팀,B팀" \
+    --verdict 유지 --reason "국사가 각 지역에 있어 인력 집중 불가" --by "홍길동"
+python3 scripts/record_decision.py --list
 ```
+
+판정이 기록되면 다음 진단부터 해당 후보는 **미판정 목록에서 빠집니다.**
+논의 시간을 아직 판단하지 않은 건에만 쓰기 위한 장치입니다.
 
 산출물은 `output/` 에 생성됩니다.
 - `01_진단리포트.md` — 구조·동역학·인력·기능 중복 진단
@@ -119,6 +127,7 @@ python3 run.py simulate plans/*.yaml     # 개편 시나리오 시뮬레이션
 |---|---|
 | [docs/data-requirements.md](docs/data-requirements.md) | 추가 확보 시 분석 범위가 넓어지는 자료 목록 (P0/P1/P2) |
 | [docs/agent-design.md](docs/agent-design.md) | 처리 단계 및 중복 판정 로직 설계 |
+| [docs/agent-plan.md](docs/agent-plan.md) | **에이전트 기획안** — 만들 것, 범위, 데이터 경계, v1 계획 |
 
 ## 구조
 
@@ -134,6 +143,7 @@ src/hrsim/
   functions.py   기능 태깅 · 병렬 조직군 · 중복 후보 탐지
   geography.py   근무 지역 추론 · 권역별 구조 분석
   naming.py      조직명과 기능의 정합성 진단
+  ledger.py      판정 원장 — 사람이 내린 판단의 기록과 반영
   simulate.py    개편 시뮬레이션 엔진
   report.py      리포트 생성
 plans/                     개편 시나리오 YAML
