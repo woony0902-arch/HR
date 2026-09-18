@@ -1,0 +1,32 @@
+name: "C안 — 전사 기획기능 통합 (공격)"
+description: >
+  B안에 더해 전사에 분산된 기획 기능을 경영기획담당으로 집중시킵니다.
+  효율화 폭은 가장 크지만 사업부의 자율 기획 역량이 약해지는 리스크가 있습니다.
+
+actions:
+  - op: MERGE
+    targets: [T1042, T2033]
+    into: {code: T1044, name: "통합구매팀", dept_code: D104}
+    keep_leader: T1042
+
+  - op: MERGE
+    targets: [T4021, T4022]
+    into: {code: T4024, name: "데이터팀", dept_code: D402}
+    keep_leader: T4021
+
+  - op: ABOLISH
+    target: T3032
+    reassign_to: T3031
+
+  # 경영기획팀이 24명으로 이미 과대하므로, 통합 전에 전략/실행으로 분리
+  - op: SPLIT
+    target: T1011
+    into:
+      - {code: T1011, name: "전사기획팀", ratio: 0.45}
+      - {code: T1013, name: "경영분석팀", ratio: 0.55}
+
+  # 사업부 기획팀을 전사기획팀으로 통합
+  - op: MERGE
+    targets: [T1011, T2011, T3011]
+    into: {code: T1011, name: "전사기획팀", dept_code: D101}
+    keep_leader: T1011

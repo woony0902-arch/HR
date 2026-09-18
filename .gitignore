@@ -1,5 +1,6 @@
-# 실제 인사 데이터는 커밋 금지
+# 실제 인사 데이터 및 그로부터 생성된 산출물은 커밋 금지
 data/
+output/
 *.xlsx
 *.xls
 !templates/*.csv

@@ -1,0 +1,43 @@
+# 실제 파일의 컬럼명을 여기에 매핑합니다. 좌측(영문)은 고정, 우측(한글)만 실제 헤더에 맞춰 수정하세요.
+
+members:
+  # data/members_2024.csv 처럼 파일명 끝의 4자리를 기준연도로 사용
+  file_glob: "members_*.csv"
+  year_from_filename: true
+  columns:
+    emp_id: 사번
+    hq_code: 본부코드
+    hq_name: 본부명
+    dept_code: 담당코드
+    dept_name: 담당명
+    team_code: 팀코드
+    team_name: 팀명
+    hire_date: 입사일
+    gender: 성별
+    age: 나이
+    position: 직책
+  optional_columns: [gender, age]
+
+roles:
+  file: "team_roles.csv"
+  columns:
+    team_code: 팀코드
+    team_name: 팀명
+    role_item: 역할
+  # 역할이 한 셀에 줄바꿈/불릿으로 뭉쳐 있으면 true (행 단위로 분해)
+  split_multiline: true
+
+# 직책 문자열 → 계층 역할 매핑 (부분 일치, 위에서부터 우선)
+positions:
+  hq_leader: [본부장, 사업부장, 부문장]
+  dept_leader: [담당임원, 담당장, 담당, 실장]
+  team_leader: [팀장, 파트장, 그룹장]
+
+params:
+  retirement_age: 60          # 정년
+  small_team_threshold: 4     # 이 미만이면 소규모 팀
+  large_team_threshold: 20    # 이 초과면 과대 팀
+  span_min: 3                 # 적정 span 하한
+  span_max: 12                # 적정 span 상한
+  max_depth: 3                # 본부-담당-팀 = 3단계
+  duplicate_sim_threshold: 0.30   # 팀 간 역할 유사도 중복 후보 컷오프
