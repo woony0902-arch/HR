@@ -18,16 +18,24 @@ COLUMN_LABELS = {
     "dept_count": "담당수", "team_count": "팀수", "hq_count": "본부수",
     "avg_team_size": "평균팀규모", "small_teams": "소규모팀", "large_teams": "과대팀",
     "leader_count": "직책자", "leader_ratio_pct": "직책자비율(%)",
-    "first_year": "최초연도", "last_year": "최종연도", "years_present": "존속연수",
+    "first_year": "최초연도", "last_year": "최종연도", "years_present": "관측연수",
     "rename_count": "개명횟수", "transfer_count": "이관횟수",
     "headcount_first": "최초인원", "headcount_last": "현재인원",
+    "year_from": "이전연도", "year_to": "연도", "successor": "승계 조직",
+    "successor_code": "승계코드", "successor_share": "승계비율",
+    "successor_count": "승계처수", "left_company": "이탈",
+    "absorbed_orgs": "흡수한 조직", "split_events": "분할횟수",
+    "status": "유형", "main_source": "주요 출처", "main_source_share": "출처비율",
+    "from_outside": "외부유입", "source_count": "출처수",
     "headcount_volatility": "인원변동성", "instability_score": "불안정점수",
     "team_name_from": "이동 출발", "team_name_to": "이동 도착", "people": "인원",
     "bidirectional": "양방향",
     "avg_headcount": "평균인원", "total_leavers": "누적이탈", "avg_attrition_pct": "평균이탈률(%)",
     "attrition_rate_pct": "이탈률(%)", "change_pct": "변화율(%)",
     "leader_age": "팀장연령", "years_to_retire": "정년까지", "candidate_pool": "후보군",
-    "risk": "리스크", "reason": "사유", "retire_year": "정년도래연도", "total": "인원",
+    "risk": "리스크", "reason": "사유", "retiring": "정년도래", "retiring_pct": "정년도래율(%)",
+    "median_age": "중위연령", "under_40_pct": "40세미만(%)", "over_50_pct": "50세이상(%)",
+    "retire_within_5y": "5년내정년", "retire_year": "정년도래연도", "total": "인원",
     "function_code": "기능코드", "function_name": "기능", "total_headcount": "투입인원",
     "teams": "수행 조직", "dispersion": "분산유형",
     "team_a": "팀 A", "team_b": "팀 B", "hq_a": "본부 A", "hq_b": "본부 B",
@@ -118,12 +126,33 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
     add("### 연도별 추이\n")
     add(_md(ctx["yearly"], 10))
 
-    add("\n### 불안정 조직 (변경 이벤트가 잦은 순)\n")
-    add("개명·이관·신설·폐지와 인원 변동을 합산한 점수입니다. 기능 정의가 불안정한 조직일 가능성이 높습니다.\n")
+    add("\n### 조직 승계 이력 (구성원 이동 기반)\n")
+    add("부서 코드가 연도 간 재사용되는 체계에서는 코드 매칭으로 통합·개명을 잡을 수 없습니다.\n"
+        "구성원이 실제로 어디로 옮겨 갔는지를 근거로 조직의 연속성을 추정했습니다.\n")
+    trans = ctx["transitions"]
+    if len(trans):
+        add("연도별 조직 변동 유형:\n")
+        pivot = (trans.groupby(["year_to", "status"]).size().unstack(fill_value=0).reset_index())
+        add(_md(pivot, 10))
+        add("\n**통합/개명된 조직** (인원의 절반 이상이 다른 조직으로 승계)\n")
+        add(_md(trans[trans["status"] == "통합/개명"][
+            ["year_to", "team_name", "headcount", "successor", "successor_share", "left_company"]]
+            .sort_values("headcount", ascending=False), 20))
+        add("\n**분할된 조직**\n")
+        add(_md(trans[trans["status"] == "분할"][
+            ["year_to", "team_name", "headcount", "successor_count", "successor"]]
+            .sort_values("headcount", ascending=False), 15))
+
+    add("\n### 신설 조직의 출처\n")
+    add(_md(ctx["new_orgs"][["year", "team_name", "headcount", "status",
+                             "main_source", "main_source_share", "from_outside"]]
+            .sort_values("headcount", ascending=False), 20))
+
+    add("\n### 불안정 조직 (변동 이벤트가 잦은 순)\n")
     life = ctx["lifecycle"]
     add(_md(life[life["instability_score"] > 0][
-        ["team_name", "first_year", "last_year", "rename_count", "transfer_count",
-         "headcount_first", "headcount_last", "instability_score"]], 15))
+        ["team_name", "headcount", "years_present", "absorbed_orgs", "split_events",
+         "headcount_volatility", "instability_score"]], 15))
 
     add("\n### 조직 간 인원 이동\n")
     add("양방향(bidirectional=True)으로 인원이 오간 조직쌍은 업무 경계가 모호할 수 있습니다.\n")
@@ -134,10 +163,20 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
     add(_md(ctx["attrition"][["team_name", "avg_headcount", "total_leavers", "avg_attrition_pct"]], 15))
 
     add("\n## 3. 인력 구조와 지속 가능성\n")
-    add("### 승계 리스크\n")
+    add("### 전사 연령 구조 추이\n")
+    add(_md(ctx["age_structure"], 10))
+
+    add("\n### 정년 도래가 집중된 조직 (향후 5년)\n")
+    add("해당 조직 인원의 몇 %가 5년 내 정년에 도달하는지입니다. 개편 이전에 먼저 봐야 할 조직들입니다.\n")
+    conc = ctx["retire_concentration"]
+    add(_md(conc[conc["retiring_pct"] > 0][
+        ["hq_name", "team_name", "headcount", "avg_age", "retiring", "retiring_pct"]], 25))
+
+    add("\n### 승계 리스크\n")
     risk = ctx["succession"]
     add(f"높음 {int((risk['risk'] == '높음').sum())}건 · 중간 {int((risk['risk'] == '중간').sum())}건\n")
-    add("_직급 데이터가 없어 '팀 내 40세 이상 팀원 수'를 후보군 대리지표로 사용했습니다._\n")
+    add("_중위 연령이 50세인 조직이라 '40세 이상'은 변별력이 없습니다. "
+        "정년까지 10년 이상 남은 팀원 수를 후보군 대리지표로 사용했습니다._\n")
     add(_md(risk[risk["risk"] != "낮음"][
         ["team_name", "headcount", "leader_age", "years_to_retire", "candidate_pool", "risk", "reason"]], 20))
 
@@ -155,11 +194,23 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
     add(_md(fmap[fmap["team_count"] > 1][
         ["function_name", "team_count", "hq_count", "total_headcount", "dispersion", "teams"]], 20))
 
+    add("\n### 병렬 조직군 (지역·채널 분할)\n")
+    add("기능명이 같고 앞의 식별자만 다른 조직들입니다. 기능 중복이 아니라 커버리지 분할이므로\n"
+        "개별 쌍이 아니라 **군 단위**로 통폐합을 검토해야 합니다.\n")
+    fam = ctx["parallel_families"]
+    add(_md(fam.drop(columns=["codes"]) if "codes" in fam else fam, 15))
+
     add("\n### 중복 후보 (팀 쌍)\n")
     add("판정초안은 **참고용**입니다. 진성 중복인지 의도된 분산인지는 반드시 사람이 확정해야 합니다.\n")
     dup = ctx["duplicates"]
     add(_md(dup[["team_a", "team_b", "hq_a", "hq_b", "similarity", "shared_functions",
                  "headcount_sum", "score", "판정초안"]] if len(dup) else dup, 20))
+
+    add("\n### 기능 분류 사전 보정용 — 전사 빈출 용어\n")
+    add("현재 사전은 일반적인 기업 기능으로 채운 **시드**입니다. 아래 용어를 참고해 "
+        "회사 실정에 맞는 기능 분류를 확정해 주셔야 위 결과의 정확도가 올라갑니다.\n"
+        "(팀별 대표 키워드는 `tables/keyword_candidates.csv` 참조)\n")
+    add(_md(ctx["corpus_terms"], 30))
 
     if len(ctx["gaps"]):
         add("\n### 담당 조직이 확인되지 않는 기능\n")

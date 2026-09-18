@@ -70,7 +70,8 @@ def _check_hierarchy(members: pd.DataFrame, out: list[Finding]) -> None:
 
 
 def _check_leaders(members: pd.DataFrame, cfg: Config, out: list[Finding]) -> None:
-    current = members[members["year"] == members["year"].max()]
+    from .structure import actual_teams
+    current = actual_teams(members[members["year"] == members["year"].max()])
     leaders = (current[current["position_role"] == ROLE_TEAM]
                .groupby("team_code").size().rename("leader_count"))
     teams = current[["team_code", "team_name"]].drop_duplicates().set_index("team_code")

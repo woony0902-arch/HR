@@ -6,8 +6,27 @@ import pandas as pd
 from .config import Config, ROLE_DEPT, ROLE_HQ, ROLE_MEMBER, ROLE_TEAM
 
 
+def actual_teams(snap: pd.DataFrame) -> pd.DataFrame:
+    """조직장 직할 슬롯을 제외한 '실제 팀'만 남긴다.
+
+    계층 데이터에서 담당장·본부장은 자기 이름과 같은 조직에 단독으로 잡히는 경우가 많다.
+    이를 팀으로 세면 팀 수·평균 규모·팀장 공석이 모두 왜곡된다.
+    """
+    leader_only = (snap.groupby("team_code")["position_role"]
+                   .apply(lambda s: bool((s.isin([ROLE_HQ, ROLE_DEPT])).all())))
+    return snap[~snap["team_code"].map(leader_only).fillna(False)].copy()
+
+
+def leader_slots(snap: pd.DataFrame) -> pd.DataFrame:
+    """제외된 조직장 직할 슬롯."""
+    leader_only = (snap.groupby("team_code")["position_role"]
+                   .apply(lambda s: bool((s.isin([ROLE_HQ, ROLE_DEPT])).all())))
+    return snap[snap["team_code"].map(leader_only).fillna(False)].copy()
+
+
 def team_profile(snap: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     """팀 단위 기본 지표. 이후 모든 분석의 기준 테이블."""
+    snap = actual_teams(snap)
     small = cfg.param("small_team_threshold", 4)
     large = cfg.param("large_team_threshold", 20)
 
@@ -60,6 +79,7 @@ def span_table(snap: pd.DataFrame, cfg: Config) -> pd.DataFrame:
 def headline(snap: pd.DataFrame, cfg: Config) -> dict[str, float | int]:
     """전사 요약 지표 한 묶음. 시뮬레이션 전후 비교에 그대로 쓰인다."""
     teams = team_profile(snap, cfg)
+    real = actual_teams(snap)
     spans = teams.loc[teams["span"] > 0, "span"]
     leaders = snap["position_role"].isin([ROLE_HQ, ROLE_DEPT, ROLE_TEAM])
 
@@ -67,7 +87,7 @@ def headline(snap: pd.DataFrame, cfg: Config) -> dict[str, float | int]:
         "headcount": int(len(snap)),
         "hq_count": int(snap["hq_code"].nunique()),
         "dept_count": int(snap["dept_code"].nunique()),
-        "team_count": int(snap["team_code"].nunique()),
+        "team_count": int(real["team_code"].nunique()),
         "leader_count": int(leaders.sum()),
         "leader_ratio_pct": round(leaders.mean() * 100, 1),
         "avg_team_size": round(teams["headcount"].mean(), 1),

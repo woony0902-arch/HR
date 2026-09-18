@@ -75,7 +75,8 @@ def load_roles(cfg: Config) -> pd.DataFrame:
     if not path.exists():
         raise FileNotFoundError(f"역할 정의표가 없습니다: {path}")
 
-    roles = pd.read_csv(path, dtype=str).pipe(_rename, spec["columns"], set())
+    roles = pd.read_csv(path, dtype=str).pipe(
+        _rename, spec["columns"], set(spec.get("optional_columns", [])))
     roles["role_item"] = roles["role_item"].fillna("")
 
     if spec.get("split_multiline", True):

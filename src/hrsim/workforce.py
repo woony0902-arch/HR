@@ -6,6 +6,7 @@ import pandas as pd
 
 from .config import Config, ROLE_TEAM
 from .dynamics import attrition_by_team
+from .structure import actual_teams
 
 AGE_BINS = [0, 29, 34, 39, 44, 49, 54, 59, 200]
 AGE_LABELS = ["~29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60+"]
@@ -50,17 +51,19 @@ def gender_profile(snap: pd.DataFrame) -> pd.DataFrame:
 def succession_risk(snap: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     """팀장 연령과 차하위 후보군 두께로 승계 리스크를 추정한다.
 
-    주의: 직급 데이터가 없어 '팀 내 40세 이상 팀원'을 후보군 대리지표로 사용한다.
-    직급이 확보되면 이 함수만 교체하면 된다.
+    후보군 대리지표: 이 조직은 중위 연령이 50세에 이르러 '40세 이상'은 거의 전원에 해당한다.
+    따라서 정년까지 10년 이상 남은 인원(= 정년-10세 미만 팀원)을 후보군으로 본다.
+    직급 체계상 BAND 가 팀장과 팀원을 구분하지 못해 연령을 대리지표로 사용했다.
     """
     retire = cfg.param("retirement_age", 60)
+    pool_age = retire - cfg.param("succession_horizon", 10)
     rows = []
 
-    for (code, name), team in snap.groupby(["team_code", "team_name"]):
+    for (code, name), team in actual_teams(snap).groupby(["team_code", "team_name"]):
         leaders = team[team["position_role"] == ROLE_TEAM]
         members = team[team["position_role"] != ROLE_TEAM]
         leader_age = float(leaders["age"].max()) if len(leaders) and leaders["age"].notna().any() else np.nan
-        candidates = int((members["age"] >= 40).sum())
+        candidates = int((members["age"] < pool_age).sum())
         years_left = retire - leader_age if not np.isnan(leader_age) else np.nan
 
         if len(leaders) == 0:
@@ -84,6 +87,45 @@ def succession_risk(snap: pd.DataFrame, cfg: Config) -> pd.DataFrame:
                            ).reset_index(drop=True)
 
 
+def age_structure(members: pd.DataFrame, cfg: Config) -> pd.DataFrame:
+    """연도별 전사 연령 구조 추이. 고령화 속도를 보여준다."""
+    retire = cfg.param("retirement_age", 60)
+    rows = []
+    for year, group in members.groupby("year"):
+        ages = group["age"].dropna()
+        ages = ages[ages > 0]
+        rows.append({
+            "year": int(year), "headcount": len(group),
+            "avg_age": round(float(ages.mean()), 1),
+            "median_age": round(float(ages.median()), 1),
+            "under_40_pct": round(float((ages < 40).mean() * 100), 1),
+            "over_50_pct": round(float((ages >= 50).mean() * 100), 1),
+            "retire_within_5y": int((ages >= retire - 5).sum()),
+            "avg_tenure": round(float(group["tenure_years"].mean()), 1),
+        })
+    return pd.DataFrame(rows)
+
+
+def retirement_concentration(snap: pd.DataFrame, cfg: Config, horizon: int = 5) -> pd.DataFrame:
+    """정년 도래가 집중된 조직. 향후 N년 내 인원의 몇 %가 빠지는가."""
+    retire = cfg.param("retirement_age", 60)
+    teams = actual_teams(snap)
+    rows = []
+    for (code, name), team in teams.groupby(["team_code", "team_name"]):
+        ages = team["age"].dropna()
+        ages = ages[ages > 0]
+        if len(ages) == 0:
+            continue
+        leaving = int((ages >= retire - horizon).sum())
+        rows.append({"team_code": code, "team_name": name,
+                     "hq_name": team["hq_name"].iloc[0],
+                     "headcount": len(team), "avg_age": round(float(ages.mean()), 1),
+                     "retiring": leaving,
+                     "retiring_pct": round(leaving / len(team) * 100, 1)})
+    out = pd.DataFrame(rows)
+    return out.sort_values(["retiring_pct", "retiring"], ascending=False).reset_index(drop=True)
+
+
 def natural_decline(members: pd.DataFrame, cfg: Config, horizon: int = 5) -> pd.DataFrame:
     """개편 없이 정년과 과거 이탈률만 적용했을 때의 조직별 인원 추이.
 
@@ -97,7 +139,7 @@ def natural_decline(members: pd.DataFrame, cfg: Config, horizon: int = 5) -> pd.
     default_rate = float(rates.median()) if len(rates) else 0.05
 
     rows = []
-    for (code, name), team in snap.groupby(["team_code", "team_name"]):
+    for (code, name), team in actual_teams(snap).groupby(["team_code", "team_name"]):
         rate = float(rates.get(code, default_rate))
         ages = team["age"].dropna().to_numpy()
         headcount = float(len(team))

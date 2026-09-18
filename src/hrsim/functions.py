@@ -59,12 +59,23 @@ def team_documents(roles: pd.DataFrame) -> pd.DataFrame:
     return docs
 
 
-def tag_functions(roles: pd.DataFrame, func_dict: pd.DataFrame) -> pd.DataFrame:
-    """역할 항목 하나하나를 기능 코드에 매핑한다(복수 매핑 허용)."""
+def tag_functions(roles: pd.DataFrame, func_dict: pd.DataFrame,
+                  tagging_types: list[str] | None = None) -> pd.DataFrame:
+    """역할 항목을 기능 코드에 매핑한다(복수 매핑 허용).
+
+    세부 R&R 에는 '안전 교육 이수' 같은 부수적 언급이 많아 그대로 태깅하면
+    모든 조직이 모든 기능을 가진 것처럼 보인다. 선언된 핵심 역할(미션·주요 R&R)만
+    태깅 대상으로 삼고, 세부 R&R 은 유사도 계산에만 사용한다.
+    """
+    scope = roles
+    if tagging_types and "role_type" in roles.columns:
+        scope = roles[roles["role_type"].isin(tagging_types)]
+        if scope.empty:
+            scope = roles
     lookup = [(row.function_code, row.function_name, [k.lower() for k in row.keywords])
               for row in func_dict.itertuples()]
     rows = []
-    for row in roles.itertuples():
+    for row in scope.itertuples():
         text = str(row.role_item).lower().replace(" ", "")
         for code, name, keywords in lookup:
             hits = [k for k in keywords if k.replace(" ", "") in text]
@@ -76,9 +87,9 @@ def tag_functions(roles: pd.DataFrame, func_dict: pd.DataFrame) -> pd.DataFrame:
     if tagged.empty:
         return tagged
 
-    untagged = set(roles["team_code"]) - set(tagged["team_code"])
+    untagged = set(scope["team_code"]) - set(tagged["team_code"])
     if untagged:  # 사전에 걸리지 않은 팀은 별도 코드로 남겨 검토 대상에 올린다
-        leftover = roles[roles["team_code"].isin(untagged)].copy()
+        leftover = scope[scope["team_code"].isin(untagged)].drop_duplicates("team_code").copy()
         leftover["function_code"] = "F-UNK"
         leftover["function_name"] = "미분류"
         leftover["matched"] = ""
@@ -110,6 +121,117 @@ def function_map(tagged: pd.DataFrame, snap: pd.DataFrame) -> pd.DataFrame:
     return summary.sort_values(["team_count", "total_headcount"], ascending=False).reset_index(drop=True)
 
 
+def common_suffix(a: str, b: str) -> str:
+    """두 조직명의 최장 공통 접미사. '강남운용팀' vs '동작운용팀' → '운용팀'."""
+    limit = min(len(a), len(b))
+    i = 0
+    while i < limit and a[-(i + 1)] == b[-(i + 1)]:
+        i += 1
+    return a[len(a) - i:] if i else ""
+
+
+def _shared_suffix(names: list[str]) -> str:
+    """여러 조직명의 공통 접미사."""
+    suffix = names[0]
+    for name in names[1:]:
+        suffix = common_suffix(suffix, name)
+        if not suffix:
+            break
+    return suffix
+
+
+def parallel_families(roles: pd.DataFrame, snap: pd.DataFrame,
+                      min_size: int = 3, min_sim: float = 0.65,
+                      min_suffix: int = 2) -> pd.DataFrame:
+    """같은 기능을 지역·채널로 나눠 수행하는 병렬 조직군.
+
+    접미사가 같다는 것만으로는 부족하고('인사기획팀'과 '전략기획팀'은 다른 기능이다),
+    접미사로 먼저 묶으면 '주영업팀'이 '영업팀'을 가려 버린다.
+    그래서 **역할 문서 유사도로 먼저 군집을 만들고**, 그 군집이 공통 접미사를 공유할 때만
+    병렬 조직으로 인정한다. 통폐합 검토는 쌍이 아니라 이 군 단위로 해야 한다.
+    """
+    docs = team_documents(roles)
+    vectors, codes = _tfidf(docs)
+    names = dict(zip(docs["team_code"], docs["team_name"]))
+    headcount = snap.groupby("team_code").size()
+
+    # 유사도 임계 이상으로 연결된 조직들을 연결 요소로 묶는다
+    parent = {c: c for c in codes}
+
+    def find(x: str) -> str:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    pair_sims: dict[tuple[str, str], float] = {}
+    for i in range(len(codes)):
+        for j in range(i + 1, len(codes)):
+            sim, _ = _cosine(vectors[i], vectors[j])
+            pair_sims[(codes[i], codes[j])] = sim
+            if sim >= min_sim:
+                parent[find(codes[i])] = find(codes[j])
+
+    clusters: dict[str, list[str]] = {}
+    for code in codes:
+        clusters.setdefault(find(code), []).append(code)
+
+    rows = []
+    for members in clusters.values():
+        if len(members) < min_size:
+            continue
+        labels = [names[c] for c in members]
+        suffix = _shared_suffix(labels)
+        if len(suffix) < min_suffix:
+            continue      # 이름 규칙을 공유하지 않으면 병렬 구조가 아니라 실제 중복일 수 있다
+        sims = [v for (a, b), v in pair_sims.items() if a in members and b in members]
+        rows.append({"공통기능": suffix, "조직수": len(members),
+                     "평균유사도": round(sum(sims) / len(sims), 3) if sims else 0.0,
+                     "총인원": int(headcount.reindex(members).fillna(0).sum()),
+                     "평균인원": round(float(headcount.reindex(members).fillna(0).mean()), 1),
+                     "조직": ", ".join(sorted(labels)),
+                     "codes": members})
+
+    if not rows:
+        return pd.DataFrame()
+
+    # 같은 접미사의 군집은 하나의 군으로 합치고, 같은 이름 규칙을 쓰는 나머지 조직도 흡수한다.
+    # (대전영업팀·천안영업팀처럼 둘만 묶인 군집은 min_size 에 걸려 빠지지만 같은 구조다)
+    merged: dict[str, set[str]] = {}
+    for row in rows:
+        merged.setdefault(row["공통기능"], set()).update(row["codes"])
+    def sim_of(a: str, b: str) -> float:
+        return pair_sims.get((a, b), pair_sims.get((b, a), 0.0))
+
+    for suffix, core in merged.items():
+        # 이름 규칙이 같아도 역할이 다르면 흡수하지 않는다(예: '전략영업팀', 'IP망운용팀')
+        candidates = [c for c, n in names.items()
+                      if n.endswith(suffix) and len(n) > len(suffix) and c not in core]
+        core.update(c for c in candidates
+                    if max((sim_of(c, m) for m in core), default=0.0) >= 0.45)
+
+    final = []
+    for suffix, members in merged.items():
+        listed = sorted(members)
+        sims = [v for (a, b), v in pair_sims.items() if a in members and b in members]
+        final.append({"공통기능": suffix, "조직수": len(listed),
+                      "평균유사도": round(sum(sims) / len(sims), 3) if sims else 0.0,
+                      "총인원": int(headcount.reindex(listed).fillna(0).sum()),
+                      "평균인원": round(float(headcount.reindex(listed).fillna(0).mean()), 1),
+                      "조직": ", ".join(sorted(names[c] for c in listed)),
+                      "codes": listed})
+
+    return (pd.DataFrame(final).sort_values(["조직수", "총인원"], ascending=False)
+            .reset_index(drop=True))
+
+
+def parallel_membership(families: pd.DataFrame) -> dict[str, str]:
+    """팀코드 → 소속 병렬 조직군 이름."""
+    if families.empty or "codes" not in families:
+        return {}
+    return {code: row.공통기능 for row in families.itertuples() for code in row.codes}
+
+
 def _tfidf(docs: pd.DataFrame) -> tuple[list[dict[str, float]], list[str]]:
     corpus = docs["tokens"].tolist()
     n = len(corpus)
@@ -134,7 +256,8 @@ def _cosine(a: dict[str, float], b: dict[str, float]) -> tuple[float, list[str]]
 
 
 def duplicate_candidates(roles: pd.DataFrame, tagged: pd.DataFrame,
-                         snap: pd.DataFrame, cfg: Config) -> pd.DataFrame:
+                         snap: pd.DataFrame, cfg: Config,
+                         families: pd.DataFrame | None = None) -> pd.DataFrame:
     """팀 쌍별 중복 후보. 역할 유사도와 공유 기능 코드를 결합해 점수화한다."""
     docs = team_documents(roles)
     vectors, codes = _tfidf(docs)
@@ -147,6 +270,8 @@ def duplicate_candidates(roles: pd.DataFrame, tagged: pd.DataFrame,
                .groupby("team_code")["function_code"].apply(set).to_dict()) if not tagged.empty else {}
     func_names = dict(zip(tagged["function_code"], tagged["function_name"])) if not tagged.empty else {}
 
+    family_of = parallel_membership(families if families is not None
+                                    else parallel_families(roles, snap))
     threshold = cfg.param("duplicate_sim_threshold", 0.30)
     rows = []
     for i in range(len(codes)):
@@ -154,13 +279,20 @@ def duplicate_candidates(roles: pd.DataFrame, tagged: pd.DataFrame,
             a, b = codes[i], codes[j]
             sim, keywords = _cosine(vectors[i], vectors[j])
             shared = by_team.get(a, set()) & by_team.get(b, set())
-            if sim < threshold and not shared:
+            # 텍스트가 충분히 겹치거나, 기능 코드가 2개 이상 겹칠 때만 후보로 올린다.
+            # 둘 중 하나만 약하게 걸리는 쌍까지 담으면 목록이 수천 건이 되어 쓸 수 없다.
+            if not (sim >= threshold or (len(shared) >= 2 and sim >= threshold / 2)):
                 continue
+
+            name_a, name_b = names.get(a, a), names.get(b, b)
+            family = family_of.get(a)
+            if family is not None and family == family_of.get(b):
+                continue          # 같은 병렬 조직군 내부 쌍은 군 단위로 따로 본다
 
             hq_a, hq_b = org["hq_name"].get(a), org["hq_name"].get(b)
             dept_a, dept_b = org["dept_name"].get(a), org["dept_name"].get(b)
             rows.append({
-                "team_a": names.get(a, a), "team_b": names.get(b, b),
+                "team_a": name_a, "team_b": name_b,
                 "team_code_a": a, "team_code_b": b,
                 "hq_a": hq_a, "hq_b": hq_b,
                 "same_hq": hq_a == hq_b, "same_dept": dept_a == dept_b,
@@ -189,6 +321,39 @@ def _classify(row: pd.Series) -> str:
     if row["shared_function_count"] >= 2 or row["similarity"] >= 0.45:
         return "전사분산 — 의도된 설계인지 확인 필요"
     return "경계모호 — R&R 재정의 검토"
+
+
+def keyword_candidates(roles: pd.DataFrame, top_n: int = 8) -> pd.DataFrame:
+    """팀별 대표 키워드. 회사 실정에 맞는 기능 분류 사전을 만들 때의 출발점이다.
+
+    시드 사전은 일반적인 기업 기능으로 채운 것이라 회사 고유 용어를 담지 못한다.
+    각 팀에서 가장 변별력 있는 용어(TF-IDF 상위)를 뽑아 주면 사전 확정 작업이 빨라진다.
+    """
+    docs = team_documents(roles)
+    vectors, codes = _tfidf(docs)
+    names = dict(zip(docs["team_code"], docs["team_name"]))
+
+    rows = []
+    for code, vector in zip(codes, vectors):
+        words = {t: v for t, v in vector.items() if len(t) >= 3}   # 바이그램 제외
+        top = sorted(words, key=words.get, reverse=True)[:top_n]
+        rows.append({"team_code": code, "team_name": names.get(code, code),
+                     "대표키워드": ", ".join(top)})
+    return pd.DataFrame(rows)
+
+
+def corpus_terms(roles: pd.DataFrame, top_n: int = 60) -> pd.DataFrame:
+    """전사에서 가장 자주 쓰이는 역할 용어. 사전에 빠진 기능을 찾는 데 쓴다."""
+    counter: Counter[str] = Counter()
+    doc_freq: Counter[str] = Counter()
+    for _, group in roles.groupby("team_code"):
+        tokens = [t for item in group["role_item"] for t in tokenize(item) if len(t) >= 3]
+        counter.update(tokens)
+        doc_freq.update(set(tokens))
+    rows = [{"용어": term, "총출현": counter[term], "보유팀수": doc_freq[term]}
+            for term in counter]
+    return (pd.DataFrame(rows).sort_values("보유팀수", ascending=False)
+            .head(top_n).reset_index(drop=True))
 
 
 def coverage_gaps(tagged: pd.DataFrame, func_dict: pd.DataFrame) -> pd.DataFrame:

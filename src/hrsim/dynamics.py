@@ -4,46 +4,125 @@ from __future__ import annotations
 import pandas as pd
 
 
-def org_lifecycle(members: pd.DataFrame) -> pd.DataFrame:
-    """팀 코드별 등장/소멸/개명/이관 이력."""
+def org_transitions(members: pd.DataFrame, min_share: float = 0.20) -> pd.DataFrame:
+    """연도 간 조직 승계 관계를 **구성원의 실제 이동**으로 추정한다.
+
+    부서 코드가 조직의 정체성이 아니라 계층 내 위치 슬롯인 경우(코드 재사용·재배치),
+    코드 매칭은 통합·개명·분할을 전혀 잡아내지 못한다. 사람의 흐름은 그런 코드 체계와
+    무관하게 조직의 연속성을 드러낸다.
+    """
     years = sorted(members["year"].unique())
-    first, last = years[0], years[-1]
+    rows = []
+
+    for prev_year, year in zip(years, years[1:]):
+        prev = members[members["year"] == prev_year][["emp_id", "team_code", "team_name"]]
+        curr = members[members["year"] == year][["emp_id", "team_code", "team_name"]]
+        joined = prev.merge(curr, on="emp_id", how="outer", suffixes=("_from", "_to"))
+
+        for code, group in joined[joined["team_code_from"].notna()].groupby("team_code_from"):
+            size = len(group)
+            stayed = group[group["team_code_to"].notna()]
+            dist = stayed["team_code_to"].value_counts()
+            successors = dist[dist / size >= min_share]
+
+            top = dist.index[0] if len(dist) else None
+            top_share = float(dist.iloc[0] / size) if len(dist) else 0.0
+            name_from = group["team_name_from"].dropna().iloc[0]
+            name_to = (stayed[stayed["team_code_to"] == top]["team_name_to"].iloc[0]
+                       if top is not None else None)
+
+            rows.append({
+                "year_from": prev_year, "year_to": year,
+                "team_code": code, "team_name": name_from,
+                "headcount": size,
+                "successor": name_to, "successor_code": top,
+                "successor_share": round(top_share, 2),
+                "successor_count": int(len(successors)),
+                "left_company": int(size - len(stayed)),
+                "status": _forward_status(code, top, top_share, len(successors), size, len(stayed)),
+            })
+
+    return pd.DataFrame(rows)
+
+
+def _forward_status(code, top, share, successor_count, size, stayed) -> str:
+    if stayed == 0:
+        return "해체"
+    if successor_count >= 2 and share < 0.60:
+        return "분할"
+    if top == code:
+        return "유지"
+    if share >= 0.50:
+        return "통합/개명"
+    return "분산흡수"
+
+
+def new_orgs(members: pd.DataFrame, min_share: float = 0.20) -> pd.DataFrame:
+    """해당 연도에 새로 나타난 조직이 어디서 왔는지 역추적한다."""
+    years = sorted(members["year"].unique())
+    rows = []
+
+    for prev_year, year in zip(years, years[1:]):
+        prev = members[members["year"] == prev_year][["emp_id", "team_code"]]
+        curr = members[members["year"] == year][["emp_id", "team_code", "team_name"]]
+        existing = set(prev["team_code"])
+        joined = curr.merge(prev, on="emp_id", how="left", suffixes=("_to", "_from"))
+
+        for code, group in joined[~joined["team_code_to"].isin(existing)].groupby("team_code_to"):
+            size = len(group)
+            came = group[group["team_code_from"].notna()]
+            dist = came["team_code_from"].value_counts()
+            top_share = float(dist.iloc[0] / size) if len(dist) else 0.0
+            sources = dist[dist / size >= min_share]
+
+            rows.append({
+                "year": year, "team_code": code,
+                "team_name": group["team_name"].iloc[0], "headcount": size,
+                "from_outside": int(size - len(came)),
+                "main_source": dist.index[0] if len(dist) else None,
+                "main_source_share": round(top_share, 2),
+                "source_count": int(len(sources)),
+                "status": ("신규채용" if len(came) / size < 0.3
+                           else ("분리" if top_share >= 0.5 else "혼합신설")),
+            })
+
+    return pd.DataFrame(rows)
+
+
+def org_lifecycle(members: pd.DataFrame) -> pd.DataFrame:
+    """조직별 3개년 변동 이력과 불안정 점수. 구성원 이동 기반 계보를 사용한다."""
+    transitions = org_transitions(members)
+    latest = int(members["year"].max())
+    current = members[members["year"] == latest]
 
     rows = []
-    for code, group in members.groupby("team_code"):
-        present = sorted(group["year"].unique())
-        names = group.sort_values("year")["team_name"]
-        parents = group.sort_values("year").groupby("year")["dept_code"].first()
+    for code, group in current.groupby("team_code"):
+        name = group["team_name"].iloc[0]
+        history = transitions[transitions["successor_code"] == code]
+        own = transitions[transitions["team_code"] == code]
 
-        renamed = names.nunique() - 1
-        transferred = int((parents != parents.shift()).sum() - 1)
-        headcounts = group.groupby("year").size()
+        absorbed = history[history["team_code"] != code]
+        events = {
+            "통합흡수": int((absorbed["status"] == "통합/개명").sum()),
+            "분할경험": int((own["status"] == "분할").sum()),
+            "분산흡수": int((absorbed["status"] == "분산흡수").sum()),
+        }
+        sizes = members[members["team_code"] == code].groupby("year").size()
+        volatility = float(sizes.pct_change().abs().mean() or 0) if len(sizes) > 1 else 0.0
 
         rows.append({
-            "team_code": code,
-            "team_name": names.iloc[-1],
-            "first_year": present[0],
-            "last_year": present[-1],
-            "years_present": len(present),
-            "created": present[0] > first,        # 첫 해에 없었으면 신설
-            "abolished": present[-1] < last,      # 마지막 해에 없으면 폐지
-            "rename_count": int(max(renamed, 0)),
-            "transfer_count": max(transferred, 0),
-            "headcount_first": int(headcounts.iloc[0]),
-            "headcount_last": int(headcounts.iloc[-1]),
-            "headcount_volatility": round(float(headcounts.pct_change().abs().mean() or 0), 3),
+            "team_code": code, "team_name": name,
+            "headcount": len(group),
+            "years_present": int(sizes.size),
+            "absorbed_orgs": events["통합흡수"] + events["분산흡수"],
+            "split_events": events["분할경험"],
+            "headcount_volatility": round(volatility, 3),
+            "instability_score": round(
+                events["통합흡수"] * 3 + events["분산흡수"] * 2 + events["분할경험"] * 3
+                + (3 - sizes.size) * 2 + volatility * 5, 1),
         })
 
-    life = pd.DataFrame(rows)
-    # 변경 이벤트가 잦을수록 기능 정의가 불안정한 조직으로 본다
-    life["instability_score"] = (
-        life["rename_count"] * 2
-        + life["transfer_count"] * 3
-        + life["created"].astype(int) * 2
-        + life["abolished"].astype(int) * 3
-        + (life["headcount_volatility"] * 5).round(1)
-    ).round(1)
-    return life.sort_values("instability_score", ascending=False).reset_index(drop=True)
+    return pd.DataFrame(rows).sort_values("instability_score", ascending=False).reset_index(drop=True)
 
 
 def movement(members: pd.DataFrame) -> pd.DataFrame:

@@ -24,20 +24,27 @@ roles:
     team_code: 팀코드
     team_name: 팀명
     role_item: 역할
+    role_type: 구분          # 미션 / 주요 / 세부 (없어도 됨)
+  optional_columns: [role_type]
+  # 기능 태깅에 사용할 구분. 세부 R&R 은 부수적 언급이 많아 태깅에서 제외하고
+  # 유사도 계산에만 사용한다. 비워 두면 전체를 태깅에 사용한다.
+  tagging_types: [미션, 주요]
   # 역할이 한 셀에 줄바꿈/불릿으로 뭉쳐 있으면 true (행 단위로 분해)
   split_multiline: true
 
 # 직책 문자열 → 계층 역할 매핑 (부분 일치, 위에서부터 우선)
 positions:
-  hq_leader: [본부장, 사업부장, 부문장]
-  dept_leader: [담당임원, 담당장, 담당, 실장]
-  team_leader: [팀장, 파트장, 그룹장]
+  # 위에서부터 부분 일치로 판정한다. 보임여부 N 인 인원은 ingest 단계에서 직책을 비운다.
+  hq_leader: [본부장, 센터장, 사업부장, CEO, CSPO]
+  dept_leader: [담당, 실장, 국장]
+  team_leader: [팀장, 파트장, PL, 리더]
 
 params:
   retirement_age: 60          # 정년
+  succession_horizon: 10      # 승계 후보군 기준: 정년까지 이 햇수 이상 남은 인원
   small_team_threshold: 4     # 이 미만이면 소규모 팀
   large_team_threshold: 20    # 이 초과면 과대 팀
   span_min: 3                 # 적정 span 하한
   span_max: 12                # 적정 span 상한
   max_depth: 3                # 본부-담당-팀 = 3단계
-  duplicate_sim_threshold: 0.30   # 팀 간 역할 유사도 중복 후보 컷오프
+  duplicate_sim_threshold: 0.45   # 팀 간 역할 유사도 중복 후보 컷오프

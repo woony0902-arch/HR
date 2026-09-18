@@ -33,7 +33,8 @@ def diagnose(args) -> None:
         print("⚠️  ERROR 등급 데이터 문제가 있습니다. 리포트는 생성하되 결과 해석에 주의하세요.\n")
 
     func_dict = functions.load_function_dict(Path(args.config).parent / "function_dict.yaml")
-    tagged = functions.tag_functions(roles, func_dict)
+    tagged = functions.tag_functions(roles, func_dict, cfg.roles.get("tagging_types"))
+    families = functions.parallel_families(roles, snap)
 
     ctx = {
         "base_year": base_year,
@@ -45,16 +46,23 @@ def diagnose(args) -> None:
         "hq_comparison": structure.hq_comparison(snap, cfg),
         "yearly": dynamics.yearly_summary(members),
         "lifecycle": dynamics.org_lifecycle(members),
+        "transitions": dynamics.org_transitions(members),
+        "new_orgs": dynamics.new_orgs(members),
         "flows": dynamics.flow_matrix(members),
         "attrition": dynamics.attrition_by_team(members),
         "succession": workforce.succession_risk(snap, cfg),
         "retirement": workforce.retirement_wave(members, cfg),
+        "age_structure": workforce.age_structure(members, cfg),
+        "retire_concentration": workforce.retirement_concentration(snap, cfg),
         "decline": workforce.natural_decline(members, cfg),
         "age_profile": workforce.age_profile(snap),
         "gender_profile": workforce.gender_profile(snap),
         "function_map": functions.function_map(tagged, snap),
-        "duplicates": functions.duplicate_candidates(roles, tagged, snap, cfg),
+        "parallel_families": families,
+        "duplicates": functions.duplicate_candidates(roles, tagged, snap, cfg, families),
         "gaps": functions.coverage_gaps(tagged, func_dict),
+        "keyword_candidates": functions.keyword_candidates(roles),
+        "corpus_terms": functions.corpus_terms(roles),
         "tagged": tagged,
     }
 
@@ -97,7 +105,7 @@ def run_simulation(args) -> None:
     snap = loader.snapshot(members)
 
     func_dict = functions.load_function_dict(Path(args.config).parent / "function_dict.yaml")
-    tagged = functions.tag_functions(roles, func_dict)
+    tagged = functions.tag_functions(roles, func_dict, cfg.roles.get("tagging_types"))
 
     paths = [Path(p) for pattern in args.plans for p in sorted(Path().glob(pattern))] \
         if any("*" in p for p in args.plans) else [Path(p) for p in args.plans]
