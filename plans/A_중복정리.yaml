@@ -1,0 +1,17 @@
+name: "A안 — 명백한 기능 중복만 정리"
+description: >
+  진단에서 역할 유사도가 가장 높게 나온 두 건만 통합합니다.
+  조직 구조는 건드리지 않아 실행 난도가 가장 낮습니다.
+
+actions:
+  # DC Eng팀(7명) + DC솔루션기술팀(11명) — 역할 유사도 0.959, 같은 DC본부 내 다른 담당
+  - op: MERGE
+    targets: [DCEng팀, DC솔루션기술팀]
+    into: {code: DC기술팀, name: "DC기술팀", dept_code: DC기술담당}
+    keep_leader: DC솔루션기술팀
+
+  # 안전보건실 내 사업장 안전보건 기능 이원화 — 유사도 0.901
+  - op: MERGE
+    targets: [Enterprise/DC안전보건팀, 유선/미디어안전보건팀]
+    into: {code: 사업장안전보건팀, name: "사업장안전보건팀", dept_code: 안전보건기획팀}
+    keep_leader: 유선/미디어안전보건팀

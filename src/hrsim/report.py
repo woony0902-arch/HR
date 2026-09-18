@@ -57,7 +57,12 @@ def _kr(df: pd.DataFrame) -> pd.DataFrame:
 def _md(df: pd.DataFrame, limit: int = 15) -> str:
     if df is None or len(df) == 0:
         return "_해당 없음_\n"
-    shown = _kr(df.head(limit))
+    shown = _kr(df.head(limit)).copy()
+    for col in shown.columns:                     # 긴 목록이 표를 망가뜨리지 않게 자른다
+        if shown[col].dtype == object:
+            shown[col] = shown[col].map(
+                lambda v: (v[:90] + f"… (외 {v.count(',') - 2}개)")
+                if isinstance(v, str) and len(v) > 100 else v)
     table = shown.to_markdown(index=False)
     if len(df) > limit:
         table += f"\n\n_… 전체 {len(df)}건 중 상위 {limit}건. 전체는 CSV 참조._"
@@ -240,7 +245,7 @@ def simulation_report(results: list, comparison: pd.DataFrame, out_dir: Path) ->
     add(_md(comparison, 30))
 
     for item in results:
-        result, delta, impact, funcs, violations = item
+        result, delta, impact, funcs, violations, profile = item
         add(f"\n---\n\n## {result.plan.name}\n")
         if result.plan.description:
             add(f"{result.plan.description}\n")
@@ -265,6 +270,10 @@ def simulation_report(results: list, comparison: pd.DataFrame, out_dir: Path) ->
             add(f"- {key}: **{impact[key]}명**")
         add("")
 
+        add("\n### 개편으로 만들어진 조직의 연령 구조\n")
+        add("통합은 사람을 합치는 일입니다. 정년이 몰린 조직끼리 합치면 몇 년 뒤 그 조직이 통째로 빕니다.\n")
+        add(_md(profile, 20))
+
         add("\n### 기능 커버리지\n")
         lost = funcs["기능 결손"]
         if lost:
@@ -275,6 +284,8 @@ def simulation_report(results: list, comparison: pd.DataFrame, out_dir: Path) ->
         if resolved:
             add(f"✅ **하나의 조직으로 모인 기능: {', '.join(resolved)}**\n")
         add("\n잔존 중복 (개편 후에도 2개 이상 조직이 수행):\n")
+        add("_기능 분류 사전이 아직 시드 상태라 이 목록은 과다 집계되어 있습니다. "
+            "사전 확정 후 다시 봐야 의미가 있습니다._\n")
         add(_md(funcs["잔존 중복"], 15))
 
         add("\n### 제약 위반\n")

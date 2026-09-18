@@ -125,7 +125,8 @@ def run_simulation(args) -> None:
                         simulate.metric_delta(result, cfg),
                         simulate.people_impact(result),
                         simulate.function_impact(result, tagged),
-                        simulate.constraint_check(result, cfg)))
+                        simulate.constraint_check(result, cfg),
+                        simulate.changed_org_profile(result, cfg)))
         plans.append(plan)
 
     if not plans:
@@ -138,7 +139,7 @@ def run_simulation(args) -> None:
 
     print(f"✅ 시뮬레이션 리포트: {path}\n")
     print(comparison.to_string(index=False))
-    for result, _, impact, funcs, violations in results:
+    for result, _, impact, funcs, violations, _profile in results:
         lost = funcs["기능 결손"]
         print(f"\n[{result.plan.name}] 소속변경 {impact['소속 변경 인원']}명 · "
               f"보임해제 {impact['보임 해제 인원']}명 · "

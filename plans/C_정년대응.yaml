@@ -1,0 +1,39 @@
+name: "C안 — B안 + 정년 절벽 대응 권역 통합"
+description: >
+  B안에 더해, 평균 연령 52.6세로 5년 내 정년이 집중된 구축팀 6개를
+  3개 권역으로 통합합니다. 정년으로 자연 감소할 인원을 미리 반영해
+  조직 수를 줄이고 잔여 인력을 한곳에 모으는 안입니다.
+
+actions:
+  - op: MERGE
+    targets: [DCEng팀, DC솔루션기술팀]
+    into: {code: DC기술팀, name: "DC기술팀", dept_code: DC기술담당}
+    keep_leader: DC솔루션기술팀
+
+  - op: MERGE
+    targets: [Enterprise/DC안전보건팀, 유선/미디어안전보건팀]
+    into: {code: 사업장안전보건팀, name: "사업장안전보건팀", dept_code: 안전보건기획팀}
+    keep_leader: 유선/미디어안전보건팀
+
+  - op: MERGE
+    targets: [동부마케팅기획팀, 중부마케팅기획팀, 서부마케팅기획팀]
+    into: {code: 유선마케팅기획팀, name: "유선마케팅기획팀", dept_code: 수도권담당}
+    keep_leader: 동부마케팅기획팀
+
+  - op: MERGE
+    targets: [동부기업고객1팀, 동부기업고객2팀]
+    into: {code: 동부기업고객팀, name: "동부기업고객팀", dept_code: 공공고객담당}
+    keep_leader: 동부기업고객2팀
+
+  # 구축팀 6개(84명, 평균 52.6세) → 3개 권역
+  - op: MERGE
+    targets: [수남구축팀, 수북구축팀]
+    into: {code: 수도권구축팀, name: "수도권구축팀", dept_code: 수도권담당}
+
+  - op: MERGE
+    targets: [대구구축팀, 부산구축팀]
+    into: {code: 영남구축팀, name: "영남구축팀", dept_code: 동부담당}
+
+  - op: MERGE
+    targets: [서부구축팀, 중부구축팀]
+    into: {code: 중서부구축팀, name: "중서부구축팀", dept_code: 중부담당}

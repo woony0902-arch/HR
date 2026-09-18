@@ -1,0 +1,28 @@
+name: "B안 — A안 + 지역 기획·영업 통합"
+description: >
+  A안에 더해, 동·중·서부 담당에 각각 놓인 마케팅기획 기능을 본부로 올리고
+  공공고객담당의 동부기업고객 2개 팀을 합칩니다.
+  지역 담당은 실행에 집중하고 기획은 본부가 맡는 구조입니다.
+
+actions:
+  - op: MERGE
+    targets: [DCEng팀, DC솔루션기술팀]
+    into: {code: DC기술팀, name: "DC기술팀", dept_code: DC기술담당}
+    keep_leader: DC솔루션기술팀
+
+  - op: MERGE
+    targets: [Enterprise/DC안전보건팀, 유선/미디어안전보건팀]
+    into: {code: 사업장안전보건팀, name: "사업장안전보건팀", dept_code: 안전보건기획팀}
+    keep_leader: 유선/미디어안전보건팀
+
+  # 동부(9) + 중부(7) + 서부(7) 마케팅기획팀 → 본부 직할 1개 팀
+  - op: MERGE
+    targets: [동부마케팅기획팀, 중부마케팅기획팀, 서부마케팅기획팀]
+    into: {code: 유선마케팅기획팀, name: "유선마케팅기획팀", dept_code: 수도권담당}
+    keep_leader: 동부마케팅기획팀
+
+  # 동부기업고객 1팀(8) + 2팀(10) — 같은 담당 내 동일 기능
+  - op: MERGE
+    targets: [동부기업고객1팀, 동부기업고객2팀]
+    into: {code: 동부기업고객팀, name: "동부기업고객팀", dept_code: 공공고객담당}
+    keep_leader: 동부기업고객2팀

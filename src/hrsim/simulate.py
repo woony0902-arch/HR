@@ -354,6 +354,38 @@ def _violations_of(snap: pd.DataFrame, cfg: Config) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=["유형", "대상", "내용", "key"])
 
 
+def changed_org_profile(result: Result, cfg: Config) -> pd.DataFrame:
+    """개편으로 새로 만들어진 조직의 인원·연령 구조.
+
+    통합은 사람을 합치는 일이므로, 합친 결과가 어떤 연령 구조가 되는지가
+    조직 수 감소보다 중요할 때가 많다. 정년 도래가 몰린 조직끼리 합치면
+    몇 년 뒤 그 조직이 통째로 비게 된다.
+    """
+    retire = cfg.param("retirement_age", 60)
+    before_teams = set(result.before["team_code"])
+    after = result.after[result.after["team_code"] != "UNASSIGNED"]
+
+    rows = []
+    for (code, name), team in after.groupby(["team_code", "team_name"]):
+        if code in before_teams and len(team) == int(
+                (result.before["team_code"] == code).sum()):
+            continue                              # 변화 없는 조직은 건너뛴다
+        ages = team["age"].dropna()
+        ages = ages[ages > 0]
+        if ages.empty:
+            continue
+        rows.append({
+            "조직": name, "인원": len(team),
+            "평균연령": round(float(ages.mean()), 1),
+            "50세이상": int((ages >= 50).sum()),
+            "5년내정년": int((ages >= retire - 5).sum()),
+            "5년내정년율(%)": round(float((ages >= retire - 5).mean() * 100), 1),
+            "팀장수": int((team["position_role"] == ROLE_TEAM).sum()),
+        })
+    return (pd.DataFrame(rows).sort_values("5년내정년율(%)", ascending=False)
+            .reset_index(drop=True) if rows else pd.DataFrame())
+
+
 def constraint_check(result: Result, cfg: Config) -> pd.DataFrame:
     """개편안의 규정·기준 위반. 개편으로 새로 생긴 것과 기존 문제를 구분한다."""
     before = set(_violations_of(result.before, cfg)["key"])
