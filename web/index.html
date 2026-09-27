@@ -2,161 +2,212 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
-  --paper:#F3F5F7;--surface:#FFFFFF;--ink:#17202A;--muted:#5F6B78;--faint:#8A95A1;--line:#D8DEE5;--line-strong:#B9C2CC;
-  --accent:#1E6F6B;--accent-ink:#FFFFFF;--accent-soft:#E3F0EF;
-  --warn:#9A6700;--warn-soft:#FFF4D6;--crit:#A63D3A;--crit-soft:#FBE7E6;--good:#2C6E49;--good-soft:#E3F1E8;
-  --user-bubble:#E8EDF2;--shadow:0 1px 2px rgba(23,32,42,.06),0 4px 12px rgba(23,32,42,.05);
+  --paper:#EEF2F6;--surface:#FFFFFF;--surface-2:#F5F7FA;--ink:#0F1B2D;--muted:#586577;--faint:#8C97A6;--line:#DCE2EA;--line-strong:#B9C3D0;
+  --accent:#2A4FB8;--accent-ink:#FFFFFF;--accent-soft:#E6ECFA;--accent-line:#B9C8F0;
+  --band:#12224A;--band-2:#182C5E;--band-ink:#FFFFFF;--band-muted:#A9B8DC;--band-line:rgba(255,255,255,.14);--band-chip:rgba(255,255,255,.10);
+  --warn:#8A5A00;--warn-soft:#FFF1D6;--crit:#B3352F;--crit-soft:#FBE5E3;--good:#1F6B3F;--good-soft:#E1F1E7;
+  --shadow:0 1px 2px rgba(15,27,45,.05),0 6px 16px rgba(15,27,45,.05);--ring:0 0 0 3px var(--accent-soft);
   --sans:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  color-scheme:dark;--paper:#12171C;--surface:#1A2027;--ink:#E6EAEE;--muted:#9AA5B1;--faint:#7C8793;--line:#2A333D;--line-strong:#3B4650;
-  --accent:#5FB3AE;--accent-ink:#0E1B1A;--accent-soft:#173634;--warn:#E2B14C;--warn-soft:#3A2E10;--crit:#E07A76;--crit-soft:#3D1E1D;
-  --good:#7CC59A;--good-soft:#173324;--user-bubble:#242C35;--shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);}}
-:root[data-theme="dark"]{
-  color-scheme:dark;--paper:#12171C;--surface:#1A2027;--ink:#E6EAEE;--muted:#9AA5B1;--faint:#7C8793;--line:#2A333D;--line-strong:#3B4650;
-  --accent:#5FB3AE;--accent-ink:#0E1B1A;--accent-soft:#173634;--warn:#E2B14C;--warn-soft:#3A2E10;--crit:#E07A76;--crit-soft:#3D1E1D;
-  --good:#7CC59A;--good-soft:#173324;--user-bubble:#242C35;--shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --paper:#0E141C;--surface:#161D27;--surface-2:#1C2430;--ink:#E7ECF2;--muted:#9AA6B5;--faint:#6F7B8A;--line:#273140;--line-strong:#3A4656;
+  --accent:#8AA8F5;--accent-ink:#0B1330;--accent-soft:#1E2A4A;--accent-line:#34478A;
+  --band:#0B1326;--band-2:#101B36;--band-ink:#F2F5FA;--band-muted:#8A9BC4;--band-line:rgba(255,255,255,.12);--band-chip:rgba(255,255,255,.08);
+  --warn:#E6B65A;--warn-soft:#3A2D0F;--crit:#EF8681;--crit-soft:#3E1D1C;--good:#7ECB9B;--good-soft:#16321F;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);--ring:0 0 0 3px var(--accent-soft)}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --paper:#0E141C;--surface:#161D27;--surface-2:#1C2430;--ink:#E7ECF2;--muted:#9AA6B5;--faint:#6F7B8A;--line:#273140;--line-strong:#3A4656;
+  --accent:#8AA8F5;--accent-ink:#0B1330;--accent-soft:#1E2A4A;--accent-line:#34478A;
+  --band:#0B1326;--band-2:#101B36;--band-ink:#F2F5FA;--band-muted:#8A9BC4;--band-line:rgba(255,255,255,.12);--band-chip:rgba(255,255,255,.08);
+  --warn:#E6B65A;--warn-soft:#3A2D0F;--crit:#EF8681;--crit-soft:#3E1D1C;--good:#7ECB9B;--good-soft:#16321F;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35);--ring:0 0 0 3px var(--accent-soft)}
 html,body{height:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.55;
-  display:flex;flex-direction:column;padding-inline:16px;padding-block:0}
 *{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55;display:flex;flex-direction:column;padding-inline:16px;padding-block:0;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
+a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:12px 10px;border-bottom:1px solid var(--line)}
-.top h1{font-size:17px;font-weight:600;margin:0;letter-spacing:-.01em}
-.top .meta{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
-.top .meta b{color:var(--ink);font-weight:500}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── 상단 밴드 ─────────────────────────────── */
+.band{background:linear-gradient(90deg,var(--band),var(--band-2));color:var(--band-ink);margin-inline:-16px;padding-inline:16px;padding-top:env(safe-area-inset-top,0px)}
+.top{display:flex;align-items:center;gap:18px;flex-wrap:wrap;min-height:56px;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:var(--band-chip);display:grid;place-items:center;border:1px solid var(--band-line)}
+.brand .mark svg{width:18px;height:18px;stroke:var(--band-ink);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.brand b{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.brand small{display:block;font-size:11px;color:var(--band-muted);letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono);line-height:1.2}
+.tabs{display:flex;gap:2px;background:var(--band-chip);border:1px solid var(--band-line);border-radius:10px;padding:3px}
+.tabs a{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;font-size:13px;color:var(--band-muted);text-decoration:none;font-weight:500}
+.tabs a[aria-current="page"]{background:var(--band-ink);color:var(--band)}
+.tabs a:not([aria-current]):hover{color:var(--band-ink)}
+.top .meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--band-muted)}
+.top .meta b{color:var(--band-ink);font-weight:600;font-family:var(--mono);font-size:13px}
 .top .spacer{flex:1}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;font-size:12px;border:1px solid var(--line);background:var(--surface)}
+.top .acts{display:flex;gap:6px}
+.tbtn{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:8px;border:1px solid var(--band-line);background:transparent;color:var(--band-ink);cursor:pointer;font-size:12.5px}
+.tbtn:hover{background:var(--band-chip)}
+.tbtn[aria-pressed="true"]{background:var(--band-ink);color:var(--band);border-color:transparent}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--muted);white-space:nowrap}
 .pill.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
 .pill.crit{background:var(--crit-soft);color:var(--crit);border-color:transparent}
 .pill.good{background:var(--good-soft);color:var(--good);border-color:transparent}
 .pill.accent{background:var(--accent-soft);color:var(--accent);border-color:transparent}
-.tbtn{padding:5px 11px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:12.5px}
-.tbtn:hover{border-color:var(--line-strong)}
-.tbtn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 
-.chat{display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
-.log{flex:1;min-height:0;overflow:auto;padding:18px 18px 8px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+/* ── 3단 레이아웃 ───────────────────────────── */
+.app{flex:1;min-height:0;display:grid;grid-template-columns:212px minmax(0,1fr) 420px;gap:16px;padding-block:14px}
+.rail{display:flex;flex-direction:column;gap:2px;min-height:0;overflow:auto;padding-right:2px}
+.rail .grp{font-size:11px;color:var(--faint);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);padding:14px 12px 5px}
+.rail .grp:first-child{padding-top:4px}
+.rail button{display:flex;align-items:center;gap:10px;text-align:left;padding:9px 12px;border-radius:10px;border:0;background:transparent;cursor:pointer;font-size:13.5px;color:var(--muted);font-weight:500;width:100%}
+.rail button:hover{background:var(--surface);color:var(--ink)}
+.rail button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.rail button .k{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint);font-weight:400}
+.rail button[aria-current="true"] .k{color:var(--accent);opacity:.7}
+.rail .railfoot{margin-top:auto;padding:12px 12px 4px;font-size:11.5px;color:var(--faint);line-height:1.5}
+
+/* ── 대화 ───────────────────────────────────── */
+.chat{display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.chathead{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.chathead .mode{font-weight:600;font-size:13.5px;white-space:nowrap}
+.chathead .modedesc{color:var(--muted);font-size:12.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log{flex:1;min-height:0;overflow:auto;padding:18px 18px 8px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){.log{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
-.msg{max-width:min(72ch,100%)}
-.msg.user{align-self:flex-end;background:var(--user-bubble);padding:9px 13px;border-radius:12px 12px 3px 12px;white-space:pre-wrap}
-.msg.bot{align-self:stretch;max-width:100%}
-.msg.bot .body{padding:2px 0}
-.msg .who{font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;font-family:var(--mono)}
+.msg{max-width:min(76ch,100%)}
+.msg.user{align-self:flex-end;background:var(--accent-soft);color:var(--ink);padding:9px 14px;border-radius:14px 14px 4px 14px;white-space:pre-wrap;font-size:14px}
+.msg.bot{align-self:stretch;max-width:100%;display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px}
+.msg.bot .av{width:26px;height:26px;border-radius:8px;background:var(--band);display:grid;place-items:center;margin-top:1px}
+.msg.bot .av svg{width:15px;height:15px;stroke:#fff;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.msg.bot .mb{min-width:0}
+.msg .who{font-size:11.5px;color:var(--muted);margin-bottom:3px;font-weight:500}
+.msg.bot .body{padding:0}
 .msg.bot .body p{margin:0 0 .6em}
 .msg.bot .body h3,.msg.bot .body h4{font-size:14px;margin:.9em 0 .35em;font-weight:600}
 .msg.bot .body ul{margin:.2em 0 .6em;padding-left:1.3em}
 .msg.bot .body li{margin:.15em 0}
-.msg.bot .body table{border-collapse:collapse;margin:.4em 0 .8em;font-size:13.5px;font-variant-numeric:tabular-nums}
-.msg.bot .body th,.msg.bot .body td{border-bottom:1px solid var(--line);padding:5px 10px 5px 0;text-align:left;vertical-align:top}
-.msg.bot .body th{color:var(--muted);font-weight:500;font-size:12.5px}
+.msg.bot .body table{border-collapse:collapse;margin:.4em 0 .8em;font-size:13px;font-variant-numeric:tabular-nums;min-width:280px}
+.msg.bot .body th,.msg.bot .body td{border-bottom:1px solid var(--line);padding:6px 12px 6px 0;text-align:left;vertical-align:top}
+.msg.bot .body th{color:var(--muted);font-weight:500;font-size:12px}
 .msg.bot .body .tw{overflow-x:auto}
-.msg.bot .body code{font-family:var(--mono);font-size:12.5px;background:var(--paper);padding:1px 5px;border-radius:4px}
+.msg.bot .body code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 .msg.bot .body strong{font-weight:600}
-.trace{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.trace .t{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--paper);border:1px solid var(--line);padding:2px 7px;border-radius:6px}
+.trace{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.trace .t{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:2px 7px;border-radius:6px}
 .thinking{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px}
 .thinking i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s infinite ease-in-out;display:inline-block}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
 .err{color:var(--crit);font-size:13px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px 10px}
-.chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;text-align:left}
-.chip:hover{border-color:var(--accent);color:var(--accent)}
-.compose{display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid var(--line);align-items:flex-end}
-.compose textarea{flex:1;resize:none;min-height:42px;max-height:140px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;line-height:1.4}
-.compose textarea:focus{border-color:var(--accent);outline:none}
-.send{padding:10px 16px;border-radius:10px;border:0;background:var(--accent);color:var(--accent-ink);font-weight:600;cursor:pointer}
-.send:disabled{opacity:.5;cursor:default}
-.stop{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
-.side{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
-.card h2{font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin:0 0 10px;font-family:var(--mono)}
-.card .empty{color:var(--muted);font-size:13px}
-.stack{display:flex;flex-direction:column;gap:6px}
-.stack .row{display:flex;gap:8px;align-items:baseline;font-size:13.5px}
-.stack .op{font-family:var(--mono);font-size:11.5px;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:4px;flex:none}
-.kv{display:grid;grid-template-columns:1fr auto auto auto;gap:4px 12px;font-size:13.5px;font-variant-numeric:tabular-nums}
-.kv .h{color:var(--muted);font-size:11.5px;font-family:var(--mono)}
-.kv .d.neg{color:var(--crit)}.kv .d.pos{color:var(--good)}
-.warns{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.warns .w{font-size:13px;padding:7px 10px;border-radius:8px;background:var(--warn-soft);color:var(--warn)}
-.warns .w.crit{background:var(--crit-soft);color:var(--crit)}
-.ledger{display:flex;flex-direction:column;gap:8px;font-size:13px}
-.ledger .e{border-left:3px solid var(--line-strong);padding:2px 0 2px 10px}
-.ledger .e.unc{border-left-color:var(--warn)}
-.ledger .e b{font-weight:600}
-.ledger .e .m{color:var(--muted);font-size:12px;font-family:var(--mono)}
-.foot{font-size:11.5px;color:var(--muted);padding-block:8px 12px;border-top:1px solid var(--line);display:flex;gap:14px;flex-wrap:wrap}
-@media (max-width:900px){
-  .main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
-  .side{max-height:42vh}
-  .side.collapsed{display:none}
-  .chips{max-height:84px;overflow:auto}
-}
-.sidetoggle{display:none}
-@media (max-width:900px){.sidetoggle{display:inline-flex}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:6px 18px 12px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 13px;font-size:13px;cursor:pointer;text-align:left;color:var(--ink)}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.compose{display:flex;gap:8px;padding:10px 14px 12px;border-top:1px solid var(--line);align-items:flex-end;background:var(--surface)}
+.compose .box{flex:1;display:flex;align-items:flex-end;gap:6px;border:1px solid var(--line);background:var(--surface-2);border-radius:12px;padding:4px 4px 4px 12px;transition:box-shadow .15s,border-color .15s}
+.compose .box:focus-within{border-color:var(--accent);box-shadow:var(--ring)}
+.compose textarea{flex:1;resize:none;min-height:36px;max-height:140px;padding:8px 0;border:0;background:transparent;color:var(--ink);font:inherit;line-height:1.4}
+.compose textarea:focus{outline:none}
+.send{width:36px;height:36px;border-radius:9px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer;display:grid;place-items:center;flex:none}
+.send svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.send:disabled{opacity:.45;cursor:default}
+.stop{padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:13px;height:36px}
+.hintkey{font-size:11px;color:var(--faint);padding:0 18px 10px;text-align:right}
 
-.app{flex:1;min-height:0;display:grid;grid-template-columns:168px minmax(0,1fr) 400px;gap:14px;padding-block:12px}
-.rail{display:flex;flex-direction:column;gap:4px;min-height:0;overflow:auto}
-.rail button{display:flex;align-items:center;gap:9px;text-align:left;padding:9px 11px;border-radius:9px;border:1px solid transparent;background:transparent;cursor:pointer;font-size:13.5px;color:var(--muted)}
-.rail button:hover{background:var(--surface);border-color:var(--line)}
-.rail button[aria-current="true"]{background:var(--surface);border-color:var(--line);color:var(--ink);font-weight:600;box-shadow:var(--shadow)}
-.rail .k{font-family:var(--mono);font-size:11px;width:16px;color:var(--faint);flex:none}
-.rail .grp{font-size:11px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono);padding:10px 11px 3px}
-.work{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
-.work h3{font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin:0 0 10px;font-family:var(--mono)}
-.work .desc{font-size:13px;color:var(--muted);margin:-4px 0 10px}
-.field{display:flex;flex-direction:column;gap:4px;margin-bottom:9px;font-size:12.5px;color:var(--muted)}
-.field input,.field select,.field textarea{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;font-size:13.5px}
-.field textarea{min-height:64px;resize:vertical}
+/* ── 작업판 ─────────────────────────────────── */
+.work{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto;padding-bottom:4px}
+.workhead{display:flex;align-items:baseline;gap:8px;padding:2px 2px 0}
+.workhead b{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);color:var(--muted);font-weight:500}
+.workhead span{font-size:12px;color:var(--faint)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 15px}
+.card.result{border-top:3px solid var(--accent)}
+.card h3{font-size:14.5px;font-weight:600;color:var(--ink);margin:0 0 8px;letter-spacing:-.01em}
+.card h3 .cnt{font-family:var(--mono);font-size:12px;color:var(--accent);background:var(--accent-soft);padding:1px 7px;border-radius:6px;margin-left:6px;vertical-align:1px;font-weight:500}
+.card .empty{color:var(--muted);font-size:13px}
+.work .desc{font-size:12.5px;color:var(--muted);margin:-4px 0 12px;line-height:1.5}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;font-size:12px;color:var(--muted);font-weight:500}
+.field input,.field select,.field textarea{padding:8px 11px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font:inherit;font-size:13.5px;font-weight:400;transition:box-shadow .15s,border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:var(--ring)}
+.field textarea{min-height:68px;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.btn{padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500;color:var(--ink)}
+.btn:hover{border-color:var(--line-strong);background:var(--surface-2)}
 .btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
-.btn.sm{padding:4px 9px;font-size:12px}
-.btn:disabled{opacity:.5;cursor:default}
+.btn.pri:hover{filter:brightness(1.06);background:var(--accent)}
+.btn.sm{padding:4px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:default;filter:none}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .list{display:flex;flex-direction:column;gap:6px}
-.item{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;display:flex;gap:8px;align-items:flex-start}
-.item .b{flex:1;min-width:0}.item .m{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.item{border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13px;display:flex;gap:10px;align-items:flex-start;background:var(--surface)}
+.item[data-sel]{cursor:pointer}
+.item[data-sel]:hover{background:var(--surface-2);border-color:var(--line-strong)}
+.item .b{flex:1;min-width:0;line-height:1.5}
+.item .m{font-size:12px;color:var(--muted)}
 .item.sel{border-color:var(--accent);background:var(--accent-soft)}
 .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.tag{display:inline-flex;gap:6px;align-items:center;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12.5px}
+.tag{display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12.5px;font-weight:500}
 .tag button{border:0;background:transparent;cursor:pointer;color:inherit;padding:0;font-size:14px;line-height:1}
 .ok{color:var(--good);font-size:12.5px}
-.faint{color:var(--faint)}
-.profile dt{font-size:11.5px;color:var(--muted);font-family:var(--mono);margin-top:8px}.profile dd{margin:0;font-size:13.5px}
+.faint{color:var(--faint);font-size:12.5px}
+.profile{margin:0}
+.profile dt{font-size:11.5px;color:var(--muted);margin-top:10px;font-weight:500}
+.profile dt:first-child{margin-top:0}
+.profile dd{margin:2px 0 0;font-size:13.5px;line-height:1.5}
+.kv{display:grid;grid-template-columns:1fr auto auto auto;gap:0 14px;font-size:13.5px;font-variant-numeric:tabular-nums}
+.kv>span{padding:6px 0;border-bottom:1px solid var(--line)}
+.kv .h{color:var(--muted);font-size:11.5px;font-weight:500;padding-top:0;padding-bottom:5px}
+.kv .d{font-weight:600}
+.kv .d.neg,.kv .d.pos{color:var(--accent)}
+.kv.two{grid-template-columns:1fr auto}
+.kv.two>span:nth-child(even){font-weight:600;font-family:var(--mono);font-size:13px}
+.warns{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.warns .w{font-size:12.5px;padding:7px 10px 7px 12px;border-radius:8px;background:var(--warn-soft);color:var(--warn);border-left:3px solid currentColor;line-height:1.45}
+.warns .w.crit{background:var(--crit-soft);color:var(--crit)}
+.warns .w.good{background:var(--good-soft);color:var(--good)}
+.ledger{display:flex;flex-direction:column;gap:10px;font-size:13px}
+.ledger .e{border-left:3px solid var(--line-strong);padding:2px 0 2px 12px;line-height:1.5}
+.ledger .e.unc{border-left-color:var(--warn)}
+.ledger .e b{font-weight:600}
+.ledger .e .m{color:var(--muted);font-size:12px}
+.foot{font-size:11.5px;color:var(--faint);padding-block:8px 12px;border-top:1px solid var(--line);display:flex;gap:16px;flex-wrap:wrap}
+.sidetoggle{display:none}
 @media (max-width:1000px){
   .app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto}
-  .rail{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px}.rail .grp{display:none}.rail button{white-space:nowrap;padding:7px 11px}
-  .work{max-height:44vh}.work.collapsed{display:none}
+  .rail{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px}.rail .grp,.rail .railfoot{display:none}.rail button{white-space:nowrap;padding:7px 12px;width:auto;background:var(--surface);border:1px solid var(--line)}.rail button[aria-current="true"]{border-color:transparent}.rail button .k{display:none}
+  .work{max-height:46vh}.work.collapsed{display:none}
+  .sidetoggle{display:inline-flex}
+  .chips{max-height:84px;overflow:auto}
+  .top .meta{display:none}
 }
 </style>
 
-<header class="top">
-  <h1>조직 시뮬레이션 에이전트</h1>
+<div class="band"><header class="top">
+  <a class="brand" href="#"><span class="mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M12 7.2v4.3M12 11.5 6.2 17M12 11.5l5.8 5.5"/></svg></span><span><b>조직 시뮬레이터</b><small>Org Structure Studio</small></span></a>
+  <nav class="tabs" aria-label="페이지">
+    <a id="dashLink" href="https://claude.ai/artifact/DjCCtJyf51BniBbhCHX7Bs" target="_blank" rel="noopener">대시보드</a>
+    <a href="#" aria-current="page">시뮬레이션</a>
+  </nav>
   <div class="meta" id="meta"><span>데이터 불러오는 중…</span></div>
   <span class="spacer"></span>
-  <a class="tbtn" id="dashLink" href="https://claude.ai/artifact/DjCCtJyf51BniBbhCHX7Bs" target="_blank" rel="noopener" style="text-decoration:none">대시보드 →</a>
-  <button class="tbtn sidetoggle" id="sideToggle" aria-pressed="true">작업판</button>
-  <button class="tbtn" id="traceToggle" aria-pressed="false" title="모델이 어떤 도구를 호출했는지 표시">추적</button>
-  <button class="tbtn" id="resetBtn" title="대화와 편집 중인 개편안을 비웁니다">초기화</button>
-</header>
+  <div class="acts">
+    <button class="tbtn sidetoggle" id="sideToggle" aria-pressed="true">작업판</button>
+    <button class="tbtn" id="traceToggle" aria-pressed="false" title="모델이 어떤 도구를 호출했는지 표시">추적</button>
+    <button class="tbtn" id="resetBtn" title="대화와 편집 중인 개편안을 비웁니다">초기화</button>
+  </div>
+</header></div>
 
 <div class="app">
   <nav class="rail" id="rail" aria-label="메뉴"></nav>
   <section class="chat" aria-label="대화">
+    <div class="chathead"><span class="mode" id="chatMode">조직 찾기</span><span class="modedesc" id="chatDesc"></span></div>
     <div class="log" id="log">
-      <div class="msg bot"><div class="who">에이전트</div><div class="body" id="intro">
+      <div class="msg bot"><div class="av"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M12 7.2v4.3M12 11.5 6.2 17M12 11.5l5.8 5.5"/></svg></div><div class="mb"><div class="who">에이전트</div><div class="body" id="intro">
         <p><strong>계산은 즉시, 해설은 대화로, 기록은 폼으로.</strong> 왼쪽 메뉴에서 할 일을 고르세요. 오른쪽 작업판은 모델 없이 바로 동작하고, 대화는 그 결과를 해설하고 '받을 질문'을 붙입니다.</p>
         <p>모든 답은 계산 · 가정 · 판단 필요로 나뉩니다. 사번·나이·성별은 이 페이지 밖으로 나가지 않습니다.</p>
-      </div></div>
+      </div></div></div>
     </div>
     <div class="chips" id="chips"></div>
     <form class="compose" id="form">
-      <textarea id="box" rows="1" placeholder="질문" aria-label="질문"></textarea>
+      <div class="box"><textarea id="box" rows="1" placeholder="질문" aria-label="질문"></textarea><button type="submit" class="send" id="sendBtn" aria-label="보내기"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>
       <button type="button" class="stop" id="stopBtn" hidden>중지</button>
-      <button type="submit" class="send" id="sendBtn">보내기</button>
     </form>
   </section>
   <aside class="work" id="work" aria-label="작업판"></aside>
@@ -410,15 +461,27 @@ const MODES = {
   free:      { grp: "", name: "자유 질문", desc: "모든 도구를 씁니다. 무엇이든 물어보세요.", tools: null, chips: ["전사 구조 요약해줘", "지역 조직은 어떻게 나뉘어 있어?", "미션 커버율이 낮은 담당은?"], hint: "무엇이든",
                inst: "" },
 };
+const ICON = {
+  find: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
+  search: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+  sim: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+  lineage: '<circle cx="6" cy="5" r="2.2"/><circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="9" r="2.2"/><path d="M6 7.2v9.6M18 11.2c0 3.5-3 4.3-6 4.8-2 .3-4 1-4 3"/>',
+  dup: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/>',
+  directive: '<path d="M5 4h14v16H5z"/><path d="M9 9h6M9 13h6M9 17h3"/>',
+  ledger: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 18V5.5M8 7h8"/>',
+  free: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+};
+const ico = (k) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICON[k] || ICON.free}</svg>`;
 function renderRail() {
   let h = "", grp = "";
-  for (const [k, m] of Object.entries(MODES)) { if (m.grp !== grp) { grp = m.grp; if (grp) h += `<div class="grp">${esc(grp)}</div>`; else h += `<div class="grp">&nbsp;</div>`; } h += `<button data-mode="${k}" aria-current="${k === S.mode}"><span class="k">${Object.keys(MODES).indexOf(k) + 1}</span>${esc(m.name)}</button>`; }
+  for (const [k, m] of Object.entries(MODES)) { if (m.grp !== grp) { grp = m.grp; h += `<div class="grp">${grp ? esc(grp) : "&nbsp;"}</div>`; } h += `<button data-mode="${k}" aria-current="${k === S.mode}">${ico(k)}${esc(m.name)}<span class="k">${Object.keys(MODES).indexOf(k) + 1}</span></button>`; }
+  h += `<div class="railfoot">보기 → 돌려보기 → 판정하기 → 기록하기 순서로 쓰면 원장이 쌓입니다.</div>`;
   $("#rail").innerHTML = h; $("#rail").querySelectorAll("button").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
 }
 function setMode(k) {
   S.mode = MODES[k] ? k : "find"; S.form = null; try { localStorage.setItem("mode", S.mode); } catch {}
   $("#rail").querySelectorAll("button").forEach((b) => b.setAttribute("aria-current", String(b.dataset.mode === S.mode)));
-  const m = MODES[S.mode]; $("#box").placeholder = m.hint;
+  const m = MODES[S.mode]; $("#box").placeholder = m.hint; $("#chatMode").textContent = m.name; $("#chatDesc").textContent = m.desc;
   $("#chips").innerHTML = m.chips.map((q) => `<button type="button" class="chip">${esc(q)}</button>`).join("");
   $("#chips").querySelectorAll(".chip").forEach((b) => (b.onclick = () => { $("#box").value = b.textContent; $("#form").requestSubmit(); }));
   $("#chips").hidden = false; renderWork();
@@ -427,12 +490,13 @@ function setMode(k) {
 // ------------------------------------------------------------ 작업판 (모델 없이 동작)
 function renderWork() {
   const w = $("#work"); const m = MODES[S.mode]; const cards = [];
-  const card = (title, body) => `<div class="card"><h3>${esc(title)}</h3>${body}</div>`;
+  const card = (title, body, cls = "") => `<div class="card ${cls}"><h3>${title}</h3>${body}</div>`;
+  const T = (t, n) => esc(t) + (n != null ? `<span class="cnt">${n}</span>` : "");
   const teamOpts = () => [...S.teams.values()].filter((t) => !t.leader_only).sort((a, b) => a.name.localeCompare(b.name, "ko")).map((t) => `<option value="${esc(t.name)}">`).join("");
   if (S.mode === "find") {
     cards.push(card("조직 찾기", `<div class="desc">${esc(m.desc)}</div><div class="field"><input id="findQ" placeholder="조직명 일부 — 예: 구축, DC, 보안" autocomplete="off"></div><div class="list" id="findList"></div>`));
     if (S.sel) { const t = S.teams.get(S.sel); if (t) { const hist = S.data.lineage.filter((l) => l.team_name === t.name || l.successor === t.name); const dec = S.decisions.filter((d) => d.label.includes(t.name));
-      cards.push(card(t.name, `<dl class="profile"><dt>소속</dt><dd>${esc(t.hq)} · ${esc(t.dept)}</dd><dt>인원 · 팀장 · 지역(추론)</dt><dd>${t.headcount}명 · ${t.leaders} · ${esc(t.region)}</dd><dt>연령</dt><dd>평균 ${r1(t.age_sum / Math.max(t.age_n, 1))}세 · 50세 이상 ${t.over50} · 5년 내 정년 ${t.retire5} (${pct(t.retire5, t.headcount)}%)</dd><dt>기능(시드 사전)</dt><dd>${esc(t.functions.join(", ") || "—")}</dd><dt>미션</dt><dd>${esc(t.rr.mission.join(" / ") || "—")}</dd><dt>주요 R&R</dt><dd>${t.rr.major.slice(0, 5).map((x) => "· " + esc(x)).join("<br>") || "—"}</dd><dt>3개년 이력 (구성원 이동 기반)</dt><dd>${hist.map((l) => `${l.year_from}→${l.year_to} ${esc(l.team_name)} → ${esc(l.successor || "—")} ${l.successor_share != null ? Math.round(l.successor_share * 100) + "%" : ""} <span class="pill">${esc(l.confidence)}</span>`).join("<br>") || "—"}</dd>${dec.length ? `<dt>관련 판정</dt><dd>${dec.map((d) => `${esc(d.verdict)} — ${esc(d.reason)}`).join("<br>")}</dd>` : ""}</dl><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-ask="${esc(t.name)} 현황을 설명하고 눈여겨볼 점을 짚어줘">대화로 해설</button><button class="btn sm" data-ask="${esc(t.name)}의 2024·2025·2026 R&R 변화를 비교해줘">R&R 연도별 비교</button></div>`)); } }
+      cards.push(card(esc(t.name), `<dl class="profile"><dt>소속</dt><dd>${esc(t.hq)} · ${esc(t.dept)}</dd><dt>인원 · 팀장 · 지역(추론)</dt><dd>${t.headcount}명 · ${t.leaders} · ${esc(t.region)}</dd><dt>연령</dt><dd>평균 ${r1(t.age_sum / Math.max(t.age_n, 1))}세 · 50세 이상 ${t.over50} · 5년 내 정년 ${t.retire5} (${pct(t.retire5, t.headcount)}%)</dd><dt>기능(시드 사전)</dt><dd>${esc(t.functions.join(", ") || "—")}</dd><dt>미션</dt><dd>${esc(t.rr.mission.join(" / ") || "—")}</dd><dt>주요 R&R</dt><dd>${t.rr.major.slice(0, 5).map((x) => "· " + esc(x)).join("<br>") || "—"}</dd><dt>3개년 이력 (구성원 이동 기반)</dt><dd>${hist.map((l) => `${l.year_from}→${l.year_to} ${esc(l.team_name)} → ${esc(l.successor || "—")} ${l.successor_share != null ? Math.round(l.successor_share * 100) + "%" : ""} <span class="pill">${esc(l.confidence)}</span>`).join("<br>") || "—"}</dd>${dec.length ? `<dt>관련 판정</dt><dd>${dec.map((d) => `${esc(d.verdict)} — ${esc(d.reason)}`).join("<br>")}</dd>` : ""}</dl><div class="btnrow"><button class="btn sm" data-ask="${esc(t.name)} 현황을 설명하고 눈여겨볼 점을 짚어줘">대화로 해설</button><button class="btn sm" data-ask="${esc(t.name)}의 2024·2025·2026 R&R 변화를 비교해줘">R&R 연도별 비교</button></div>`)); } }
   } else if (S.mode === "search") {
     cards.push(card("R&R 검색", `<div class="desc">${esc(m.desc)}</div><div class="row2"><div class="field"><input id="srchQ" placeholder="키워드 — 예: 해지방어" autocomplete="off"></div><div class="field"><select id="srchY">${Object.keys(S.data.rr).sort().reverse().map((y) => `<option>${y}</option>`).join("")}</select></div></div><div class="list" id="srchList"></div>`));
   } else if (S.mode === "sim") {
@@ -440,21 +504,21 @@ function renderWork() {
       <div class="tags" id="mergeTags"></div><div class="field"><input id="mergePick" list="teamDL" placeholder="합칠 팀 이름 입력 후 Enter (2개 이상)" autocomplete="off"></div>
       <div class="row2"><div class="field"><input id="mergeName" placeholder="새 조직 이름 — 예: 영남구축팀"></div><div class="field"><button class="btn" id="mergeAdd">통합 추가</button></div></div>
       <div class="row2"><div class="field"><input id="abolPick" list="teamDL" placeholder="폐지할 팀" autocomplete="off"></div><div class="field"><input id="abolTo" list="teamDL" placeholder="흡수할 팀 (비우면 미배치)" autocomplete="off"></div></div><div class="field"><button class="btn" id="abolAdd">폐지 추가</button></div>
-      <h3 style="margin-top:6px">편집 중인 개편안</h3><div class="list" id="scnList">${S.scenario.length ? S.scenario.map((a, i) => `<div class="item"><span class="b"><span class="pill accent">${a.op}</span> ${esc(describeAction(a).replace(/^\w+ /, ""))}</span><button class="btn sm" data-del="${i}">삭제</button></div>`).join("") : '<div class="faint">아직 없습니다.</div>'}</div>
-      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn pri" id="runBtn" ${S.scenario.length ? "" : "disabled"}>실행 (즉시)</button><button class="btn" id="clearBtn">비우기</button></div>`));
+      <h3 style="margin-top:14px">편집 중인 개편안${S.scenario.length ? `<span class="cnt">${S.scenario.length}</span>` : ""}</h3><div class="list" id="scnList">${S.scenario.length ? S.scenario.map((a, i) => `<div class="item"><span class="b"><span class="pill accent">${a.op}</span> ${esc(describeAction(a).replace(/^\w+ /, ""))}</span><button class="btn sm" data-del="${i}">삭제</button></div>`).join("") : '<div class="faint">아직 없습니다.</div>'}</div>
+      <div class="btnrow"><button class="btn pri" id="runBtn" ${S.scenario.length ? "" : "disabled"}>실행 (즉시)</button><button class="btn" id="clearBtn">비우기</button></div>`));
     if (S.lastSim) { const { before, after, result } = S.lastSim; const keys = ["팀 수", "직책자 수", "직책자 비율(%)", "중위 span", "최대 span", "평균 연령"];
       let h = `<div class="kv"><span class="h">지표</span><span class="h">Before</span><span class="h">After</span><span class="h">Δ</span>`; for (const k of keys) { const d = r1(after[k] - before[k]); h += `<span>${k}</span><span>${before[k]}</span><span>${after[k]}</span><span class="d ${d < 0 ? "neg" : d > 0 ? "pos" : ""}">${d > 0 ? "+" : ""}${d}</span>`; }
       h += `<span>소속 변경</span><span></span><span></span><span>${result.사람영향["소속 변경 인원"]}명</span><span>보임 해제</span><span></span><span></span><span>${result.사람영향["보임 해제 인원"]}명</span></div>`;
-      const ws = []; for (const p of result.만들어진조직의연령구조) ws.push(`<div class="w">${esc(p.조직)} ${p.인원}명 · 평균 ${p.평균연령}세 · 5년 내 정년 ${p["5년내정년"]}명 (${p["5년내정년율(%)"]}%)</div>`); for (const x of result.지역간통합) ws.push(`<div class="w">지역 간 통합 · ${esc(x.통합조직)} (${esc(x.지역)}) — 사람은 원래 자리에 남습니다</div>`); for (const v of result.제약위반.filter((v) => v.발생 === "신규")) ws.push(`<div class="w ${/보호|판정/.test(v.유형) ? "crit" : ""}">${esc(v.유형)} · ${esc(v.대상)} — ${esc(v.내용)}</div>`); if (result.하나로모인기능.length) ws.push(`<div class="w" style="background:var(--good-soft);color:var(--good)">하나로 모인 기능: ${esc(result.하나로모인기능.join(", "))}</div>`);
-      cards.push(card(`결과 — ${S.lastSim.name}`, h + (ws.length ? `<div class="warns">${ws.join("")}</div>` : "") + `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn pri sm" data-ask="방금 작업판에서 돌린 시뮬레이션 결과를 해설하고 '이 안이 받을 질문'을 붙여줘">해설과 받을 질문 요청</button><button class="btn sm" data-ask="왜 보임 해제가 ${result.사람영향["보임 해제 인원"]}명이야? 계산 근거를 말해줘">왜 그 숫자야?</button></div>`)); }
+      const ws = []; for (const p of result.만들어진조직의연령구조) ws.push(`<div class="w">${esc(p.조직)} ${p.인원}명 · 평균 ${p.평균연령}세 · 5년 내 정년 ${p["5년내정년"]}명 (${p["5년내정년율(%)"]}%)</div>`); for (const x of result.지역간통합) ws.push(`<div class="w">지역 간 통합 · ${esc(x.통합조직)} (${esc(x.지역)}) — 사람은 원래 자리에 남습니다</div>`); for (const v of result.제약위반.filter((v) => v.발생 === "신규")) ws.push(`<div class="w ${/보호|판정/.test(v.유형) ? "crit" : ""}">${esc(v.유형)} · ${esc(v.대상)} — ${esc(v.내용)}</div>`); if (result.하나로모인기능.length) ws.push(`<div class="w good">하나로 모인 기능: ${esc(result.하나로모인기능.join(", "))}</div>`);
+      cards.push(card(`결과 · ${esc(S.lastSim.name)}`, h + (ws.length ? `<div class="warns">${ws.join("")}</div>` : "") + `<div class="btnrow"><button class="btn pri sm" data-ask="방금 작업판에서 돌린 시뮬레이션 결과를 해설하고 '이 안이 받을 질문'을 붙여줘">해설과 받을 질문 요청</button><button class="btn sm" data-ask="왜 보임 해제가 ${result.사람영향["보임 해제 인원"]}명이야? 계산 근거를 말해줘">왜 그 숫자야?</button></div>`, "result")); }
   } else if (S.mode === "lineage") {
     const q = S.data.lineage.filter((l) => ["확인필요", "낮음"].includes(l.confidence));
-    cards.push(card(`검토 필요 ${q.length}건`, `<div class="desc">${esc(m.desc)}</div><div class="list">${q.slice(0, 30).map((l, i) => `<div class="item"><span class="b"><b>${esc(l.team_name)}</b> <span class="m">${l.year_from}→${l.year_to} · ${l.headcount}명 · ${esc(l.status)}</span><br>→ ${esc(l.successor || "승계처 없음")} ${l.successor_share != null ? Math.round(l.successor_share * 100) + "%" : ""} <span class="pill ${l.confidence === "확인필요" ? "crit" : "warn"}">${esc(l.confidence)}</span><br><span class="m">${esc(l.evidence)}</span></span><button class="btn sm" data-judge-lineage="${i}">판정</button></div>`).join("")}</div>`));
+    cards.push(card(T("승계 검토 필요", q.length), `<div class="desc">${esc(m.desc)}</div><div class="list">${q.slice(0, 30).map((l, i) => `<div class="item"><span class="b"><b>${esc(l.team_name)}</b> <span class="m">${l.year_from}→${l.year_to} · ${l.headcount}명 · ${esc(l.status)}</span><br>→ ${esc(l.successor || "승계처 없음")} ${l.successor_share != null ? Math.round(l.successor_share * 100) + "%" : ""} <span class="pill ${l.confidence === "확인필요" ? "crit" : "warn"}">${esc(l.confidence)}</span><br><span class="m">${esc(l.evidence)}</span></span><button class="btn sm" data-judge-lineage="${i}">판정</button></div>`).join("")}</div>`));
     if (S.form?.type === "lineage") cards.push(formCard("승계 판정 기록", "구조", S.form.targets, ["유지", "통합검토", "R&R재정의", "명칭변경", "보류"], S.form.note));
   } else if (S.mode === "dup") {
     const decided = new Set(S.decisions.filter((d) => d.kind === "중복후보").map((d) => d.label));
     const pend = S.data.duplicates.filter((d) => !decided.has([d.team_a, d.team_b].sort().join(" ↔ ")));
-    cards.push(card(`미판정 ${pend.length}건`, `<div class="desc">${esc(m.desc)}</div><div class="list">${pend.slice(0, 25).map((d, i) => `<div class="item"><span class="b"><b>${esc(d.team_a)}</b> ↔ <b>${esc(d.team_b)}</b><br><span class="m">${esc(d.hq_a)}${d.hq_a !== d.hq_b ? " / " + esc(d.hq_b) : ""} · 유사도 ${d.similarity} · ${d.headcount_sum}명</span><br><span class="m">${esc(d.shared_functions || "")} · ${esc(d.판정초안)}</span></span><button class="btn sm" data-judge-dup="${i}">판정</button></div>`).join("")}</div>`));
+    cards.push(card(T("미판정 중복 후보", pend.length), `<div class="desc">${esc(m.desc)}</div><div class="list">${pend.slice(0, 25).map((d, i) => `<div class="item"><span class="b"><b>${esc(d.team_a)}</b> ↔ <b>${esc(d.team_b)}</b><br><span class="m">${esc(d.hq_a)}${d.hq_a !== d.hq_b ? " / " + esc(d.hq_b) : ""} · 유사도 ${d.similarity} · ${d.headcount_sum}명</span><br><span class="m">${esc(d.shared_functions || "")} · ${esc(d.판정초안)}</span></span><button class="btn sm" data-judge-dup="${i}">판정</button></div>`).join("")}</div>`));
     if (S.form?.type === "dup") cards.push(formCard("중복 판정 기록", "중복후보", S.form.targets, ["유지", "통합검토", "R&R재정의", "명칭변경", "보류"], "같은 후보가 다시 올라오지 않도록 사유를 남깁니다."));
   } else if (S.mode === "directive") {
     cards.push(card("지침 기록", `<div class="desc">${esc(m.desc)}</div>
@@ -465,21 +529,21 @@ function renderWork() {
       <div class="field">검사 조건 (규칙일 때) <span class="faint">min_team_size=5 · max_span=15 · protect=정보보호실,감사실 · leader_ratio_max=0.11</span><input id="dRule" placeholder="max_span=15"></div>
       <button class="btn pri" id="dSave">기록</button> <span id="dMsg" class="ok"></span>`));
     const unc = S.directives.filter((d) => d.status === "미확인");
-    cards.push(card(`지침 ${S.directives.length}건 · 미확인 ${unc.length}`, `<div class="ledger">${[...S.directives].reverse().map((d) => `<div class="e ${d.status === "미확인" ? "unc" : ""}"><b>${esc(d.id)}</b> ${esc(d.kind)}/${esc(d.force)}${d.status === "미확인" ? ' <span class="pill warn">미확인</span>' : ""}<div>${esc(d.text)}</div><div class="m">${esc(d.source)}${d.by ? " · " + esc(d.by) : ""}</div></div>`).join("") || '<div class="faint">없음</div>'}</div>`));
+    cards.push(card(T("등록된 지침", S.directives.length) + (unc.length ? ` <span class="pill warn">미확인 ${unc.length}</span>` : ""), `<div class="ledger">${[...S.directives].reverse().map((d) => `<div class="e ${d.status === "미확인" ? "unc" : ""}"><b>${esc(d.id)}</b> ${esc(d.kind)}/${esc(d.force)}${d.status === "미확인" ? ' <span class="pill warn">미확인</span>' : ""}<div>${esc(d.text)}</div><div class="m">${esc(d.source)}${d.by ? " · " + esc(d.by) : ""}</div></div>`).join("") || '<div class="faint">없음</div>'}</div>`));
   } else if (S.mode === "ledger") {
     cards.push(card("원장", `<div class="field"><input id="ledQ" placeholder="조직명·키워드로 거르기"></div><div class="ledger" id="ledList"></div>`));
   } else {
     const h = metrics(S.teams);
-    cards.push(card("전사 한눈에", `<div class="kv" style="grid-template-columns:1fr auto"><span>인원</span><span>${h["총 인원"]}</span><span>팀</span><span>${h["팀 수"]}</span><span>직책자 비율</span><span>${h["직책자 비율(%)"]}%</span><span>중위 span</span><span>${h["중위 span"]}</span><span>평균 연령</span><span>${h["평균 연령"]}</span><span>판정 / 지침</span><span>${S.decisions.length} / ${S.directives.length}</span></div>`));
+    cards.push(card("전사 한눈에", `<div class="kv two"><span>인원</span><span>${h["총 인원"]}</span><span>팀</span><span>${h["팀 수"]}</span><span>직책자 비율</span><span>${h["직책자 비율(%)"]}%</span><span>중위 span</span><span>${h["중위 span"]}</span><span>평균 연령</span><span>${h["평균 연령"]}</span><span>판정 / 지침</span><span>${S.decisions.length} / ${S.directives.length}</span></div>`));
   }
-  w.innerHTML = cards.join(""); bindWork();
+  w.innerHTML = `<div class="workhead"><b>작업판</b><span>모델 없이 즉시 계산</span></div>` + cards.join(""); bindWork();
 }
 function formCard(title, kind, targets, verdicts, note) {
-  return `<div class="card"><h3>${esc(title)}</h3><div class="desc">${esc(note || "")}</div><div class="tags">${targets.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+  return `<div class="card result"><h3>${esc(title)}</h3><div class="desc">${esc(note || "")}</div><div class="tags">${targets.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
     <div class="field">판정<select id="fVerdict">${verdicts.map((v) => `<option>${v}</option>`).join("")}</select></div>
     <div class="field">사유 (필수)<textarea id="fReason" placeholder="왜 그렇게 판단했는가. 내년에 읽어도 이해되게."></textarea></div>
     <div class="field">판정자 (역할)<input id="fBy" placeholder="예: HR실장"></div>
-    <div style="display:flex;gap:8px"><button class="btn pri" id="fSave" data-kind="${esc(kind)}">기록</button><button class="btn" id="fCancel">취소</button></div><span id="fMsg" class="ok"></span></div>`;
+    <div class="btnrow" style="margin-top:2px"><button class="btn pri" id="fSave" data-kind="${esc(kind)}">기록</button><button class="btn" id="fCancel">취소</button></div><span id="fMsg" class="ok"></span></div>`;
 }
 function bindWork() {
   document.querySelectorAll("[data-ask]").forEach((b) => (b.onclick = () => { $("#box").value = b.dataset.ask; $("#form").requestSubmit(); }));
@@ -519,7 +583,9 @@ function md(text) {
   return out;
 }
 function addUser(text) { const d = document.createElement("div"); d.className = "msg user"; d.textContent = text; $("#log").append(d); scroll(); }
-function addBot() { const d = document.createElement("div"); d.className = "msg bot"; d.innerHTML = `<div class="who">에이전트 · ${esc(MODES[S.mode].name)}</div><div class="body"><div class="thinking"><i></i>생각하는 중…</div></div><div class="trace" ${S.trace ? "" : "hidden"}></div>`; $("#log").append(d); scroll(); return d; }
+const AV = '<div class="av"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M12 7.2v4.3M12 11.5 6.2 17M12 11.5l5.8 5.5"/></svg></div>';
+function botShell(who, inner, trace = "") { const d = document.createElement("div"); d.className = "msg bot"; d.innerHTML = `${AV}<div class="mb"><div class="who">${esc(who)}</div><div class="body">${inner}</div>${trace}</div>`; return d; }
+function addBot() { const d = botShell(`에이전트 · ${MODES[S.mode].name}`, '<div class="thinking"><i></i>생각하는 중…</div>', `<div class="trace" ${S.trace ? "" : "hidden"}></div>`); $("#log").append(d); scroll(); return d; }
 function scroll() { const l = $("#log"); l.scrollTop = l.scrollHeight; }
 
 function rules() {
@@ -558,7 +624,7 @@ ${dirs || "- (없음)"}
 
 async function send(text) {
   if (S.busy || !S.data) return;
-  if (!S.sample) { const n = document.createElement("div"); n.className = "msg bot"; n.innerHTML = '<div class="who">에이전트</div><div class="body err">이 화면에서는 Claude 에 질문할 수 없습니다. claude.ai 뷰어에서 열어 주세요. 작업판은 그대로 쓸 수 있습니다.</div>'; $("#log").append(n); scroll(); return; }
+  if (!S.sample) { const n = botShell("에이전트", '<p class="err">이 화면에서는 Claude 에 질문할 수 없습니다. claude.ai 뷰어에서 열어 주세요. 작업판은 그대로 쓸 수 있습니다.</p>'); $("#log").append(n); scroll(); return; }
   S.busy = true; $("#sendBtn").disabled = true; $("#stopBtn").hidden = false; $("#chips").hidden = true;
   addUser(text); const bot = addBot(); const body = bot.querySelector(".body"), trace = bot.querySelector(".trace");
   S.turns.push({ role: "user", content: text });

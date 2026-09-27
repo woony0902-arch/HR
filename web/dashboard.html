@@ -2,84 +2,127 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
-  --paper:#F3F5F7;--surface:#FFFFFF;--ink:#17202A;--muted:#5F6B78;--faint:#8A95A1;--line:#D8DEE5;--grid:#E6EAEF;--axis:#C3CAD2;
-  --accent:#1E6F6B;--accent-soft:#E3F0EF;
+  --paper:#EEF2F6;--surface:#FFFFFF;--surface-2:#F5F7FA;--ink:#0F1B2D;--muted:#586577;--faint:#8C97A6;--line:#DCE2EA;--line-strong:#B9C3D0;--grid:#E7EBF0;--axis:#C5CDD7;
+  --accent:#2A4FB8;--accent-ink:#FFFFFF;--accent-soft:#E6ECFA;
+  --band:#12224A;--band-2:#182C5E;--band-ink:#FFFFFF;--band-muted:#A9B8DC;--band-line:rgba(255,255,255,.14);--band-chip:rgba(255,255,255,.10);
   --s1:#2a78d6;--s1-soft:#cde2fb;--o1:#86b6ef;--o2:#5598e7;--o3:#2a78d6;--o4:#1c5cab;--o5:#104281;
-  --good:#0ca30c;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--good-ink:#006300;
-  --warn-soft:#FFF4D6;--crit-soft:#FBE7E6;--good-soft:#E3F1E8;
-  --shadow:0 1px 2px rgba(23,32,42,.06),0 4px 12px rgba(23,32,42,.05);
+  --good:#0ca30c;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--good-ink:#006300;--crit-ink:#B3352F;--warn-ink:#8A5A00;
+  --warn-soft:#FFF1D6;--crit-soft:#FBE5E3;--good-soft:#E1F1E7;
+  --shadow:0 1px 2px rgba(15,27,45,.05),0 6px 16px rgba(15,27,45,.05);
   --sans:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
-  --paper:#12171C;--surface:#1A2027;--ink:#E6EAEE;--muted:#9AA5B1;--faint:#7C8793;--line:#2A333D;--grid:#242C35;--axis:#3B4650;
-  --accent:#5FB3AE;--accent-soft:#173634;--s1:#3987e5;--s1-soft:#184f95;--o1:#184f95;--o2:#256abf;--o3:#3987e5;--o4:#6da7ec;--o5:#9ec5f4;
-  --good-ink:#0ca30c;--warn-soft:#3A2E10;--crit-soft:#3D1E1D;--good-soft:#173324;--shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35)}}
+  --paper:#0E141C;--surface:#161D27;--surface-2:#1C2430;--ink:#E7ECF2;--muted:#9AA6B5;--faint:#6F7B8A;--line:#273140;--line-strong:#3A4656;--grid:#222B37;--axis:#3A4656;
+  --accent:#8AA8F5;--accent-ink:#0B1330;--accent-soft:#1E2A4A;
+  --band:#0B1326;--band-2:#101B36;--band-ink:#F2F5FA;--band-muted:#8A9BC4;--band-line:rgba(255,255,255,.12);--band-chip:rgba(255,255,255,.08);
+  --s1:#3987e5;--s1-soft:#184f95;--o1:#184f95;--o2:#256abf;--o3:#3987e5;--o4:#6da7ec;--o5:#9ec5f4;
+  --good-ink:#0ca30c;--crit-ink:#EF8681;--warn-ink:#E6B65A;--warn-soft:#3A2D0F;--crit-soft:#3E1D1C;--good-soft:#16321F;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}}
 :root[data-theme="dark"]{color-scheme:dark;
-  --paper:#12171C;--surface:#1A2027;--ink:#E6EAEE;--muted:#9AA5B1;--faint:#7C8793;--line:#2A333D;--grid:#242C35;--axis:#3B4650;
-  --accent:#5FB3AE;--accent-soft:#173634;--s1:#3987e5;--s1-soft:#184f95;--o1:#184f95;--o2:#256abf;--o3:#3987e5;--o4:#6da7ec;--o5:#9ec5f4;
-  --good-ink:#0ca30c;--warn-soft:#3A2E10;--crit-soft:#3D1E1D;--good-soft:#173324;--shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35)}
+  --paper:#0E141C;--surface:#161D27;--surface-2:#1C2430;--ink:#E7ECF2;--muted:#9AA6B5;--faint:#6F7B8A;--line:#273140;--line-strong:#3A4656;--grid:#222B37;--axis:#3A4656;
+  --accent:#8AA8F5;--accent-ink:#0B1330;--accent-soft:#1E2A4A;
+  --band:#0B1326;--band-2:#101B36;--band-ink:#F2F5FA;--band-muted:#8A9BC4;--band-line:rgba(255,255,255,.12);--band-chip:rgba(255,255,255,.08);
+  --s1:#3987e5;--s1-soft:#184f95;--o1:#184f95;--o2:#256abf;--o3:#3987e5;--o4:#6da7ec;--o5:#9ec5f4;
+  --good-ink:#0ca30c;--crit-ink:#EF8681;--warn-ink:#E6B65A;--warn-soft:#3A2D0F;--crit-soft:#3E1D1C;--good-soft:#16321F;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.5;padding-inline:16px;padding-block:0 24px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:0 32px;-webkit-font-smoothing:antialiased}
 button,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wrap{max-width:1240px;margin:0 auto}
-.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:14px 12px;border-bottom:1px solid var(--line);position:sticky;top:env(safe-area-inset-top,0px);background:var(--paper);z-index:5}
-.top h1{font-size:17px;font-weight:600;margin:0}
-.meta{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}.meta b{color:var(--ink);font-weight:500}
+
+/* ── 상단 밴드 ─────────────────────────────── */
+.band{background:linear-gradient(90deg,var(--band),var(--band-2));color:var(--band-ink);margin-inline:-16px;padding-inline:16px;padding-top:env(safe-area-inset-top,0px)}
+.top{display:flex;align-items:center;gap:18px;flex-wrap:wrap;min-height:56px;padding-block:8px;max-width:1240px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:var(--band-chip);display:grid;place-items:center;border:1px solid var(--band-line)}
+.brand .mark svg{width:18px;height:18px;stroke:var(--band-ink);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.brand b{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.brand small{display:block;font-size:11px;color:var(--band-muted);letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono);line-height:1.2}
+.tabs{display:flex;gap:2px;background:var(--band-chip);border:1px solid var(--band-line);border-radius:10px;padding:3px}
+.tabs a{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:7px;font-size:13px;color:var(--band-muted);text-decoration:none;font-weight:500}
+.tabs a[aria-current="page"]{background:var(--band-ink);color:var(--band)}
+.tabs a:not([aria-current]):hover{color:var(--band-ink)}
+.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--band-muted)}.meta b{color:var(--band-ink);font-weight:600;font-family:var(--mono);font-size:13px}
 .spacer{flex:1}
-.link{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;font-size:13px}
-:root[data-theme="dark"] .link{color:#0E1B1A}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .link{color:#0E1B1A}}
-.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-block:12px 4px;font-size:13px;color:var(--muted)}
-.filters select{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-block:12px 6px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow)}
-.tile .l{font-size:12px;color:var(--muted)}.tile .v{font-size:26px;font-weight:600;line-height:1.15;margin-top:2px}.tile .d{font-size:12px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
-.tile .d.up{color:var(--crit)}.tile .d.dn{color:var(--good-ink)}
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:14px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px 12px;box-shadow:var(--shadow);grid-column:span 12;min-width:0}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:500;border:1px solid var(--line);white-space:nowrap;color:var(--muted)}
+.pill.warn{background:var(--warn-soft);color:var(--warn-ink);border-color:transparent}.pill.crit{background:var(--crit-soft);color:var(--crit-ink);border-color:transparent}.pill.good{background:var(--good-soft);color:var(--good-ink);border-color:transparent}.pill.accent{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+
+/* ── 필터 + 구역 이동 ───────────────────────── */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);margin-inline:-16px;padding-inline:16px;border-bottom:1px solid var(--line)}
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-block:10px;font-size:13px;color:var(--muted);max-width:1240px;margin:0 auto}
+.filters label{font-weight:500}
+.filters select{padding:6px 30px 6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:13px;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+.filters .sep{width:1px;height:20px;background:var(--line)}
+.jump{display:flex;gap:4px;flex-wrap:wrap}
+.jump button{border:0;background:transparent;padding:5px 10px;border-radius:8px;font-size:12.5px;color:var(--muted);cursor:pointer;font-weight:500}
+.jump button:hover{background:var(--surface);color:var(--ink)}
+.jump button[aria-current="true"]{background:var(--accent-soft);color:var(--accent)}
+
+/* ── 지표 타일 ─────────────────────────────── */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-block:16px 8px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px 12px}
+.tile .l{font-size:12px;color:var(--muted);font-weight:500}
+.tile .v{font-size:28px;font-weight:600;line-height:1.15;margin-top:4px;letter-spacing:-.02em}
+.tile .v small{font-size:14px;font-weight:500;color:var(--muted);margin-left:2px;letter-spacing:0}
+.tile .d{font-size:12px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums}
+.tile .d.up{color:var(--crit-ink)}.tile .d.dn{color:var(--good-ink)}
+.tile .d.up::before{content:"▲ ";font-size:9px}.tile .d.dn::before{content:"▼ ";font-size:9px}
+
+/* ── 구역과 카드 ───────────────────────────── */
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:6px}
+.sec{grid-column:span 12;display:flex;align-items:baseline;gap:12px;padding:22px 2px 2px;scroll-margin-top:64px}
+.sec h2{font-size:17px;font-weight:600;margin:0;letter-spacing:-.01em}
+.sec .n{font-family:var(--mono);font-size:12px;color:var(--accent);background:var(--accent-soft);padding:1px 7px;border-radius:6px}
+.sec .s{font-size:12.5px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 18px 14px;grid-column:span 12;min-width:0}
 .c6{grid-column:span 6}.c4{grid-column:span 4}.c8{grid-column:span 8}
 @media (max-width:900px){.c6,.c4,.c8{grid-column:span 12}}
-.card h2{font-size:14px;font-weight:600;margin:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.card h2 .sub{font-size:12px;color:var(--muted);font-weight:400}
-.card .hd{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}.card .hd .sp{flex:1}
-.tv{font-size:12px;padding:3px 9px;border-radius:6px;border:1px solid var(--line);background:var(--paper);cursor:pointer;flex:none}
+.card h2{font-size:14.5px;font-weight:600;margin:0;letter-spacing:-.01em}
+.card h2 .sub{display:block;font-size:12px;color:var(--muted);font-weight:400;margin-top:2px;letter-spacing:0}
+.card .hd{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px}.card .hd .sp{flex:1}
+.tv{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid var(--line);background:var(--surface);cursor:pointer;flex:none;color:var(--muted);font-weight:500}
+.tv:hover{border-color:var(--line-strong);color:var(--ink)}
 .tv[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 svg{display:block;max-width:100%;height:auto;font-family:var(--sans)}
-svg text{fill:var(--muted);font-size:11.5px}svg text.v{fill:var(--ink)}svg text.lab{fill:var(--ink);font-size:12.5px}
+svg text{fill:var(--muted);font-size:11.5px}svg text.v{fill:var(--ink);font-weight:500}svg text.lab{fill:var(--ink);font-size:12.5px}
 svg .grid{stroke:var(--grid);stroke-width:1}svg .axis{stroke:var(--axis);stroke-width:1}
 svg .bar{fill:var(--s1)}svg .bar:hover,svg .seg:hover{filter:brightness(1.12)}
 svg .hit{fill:transparent;cursor:default}
-.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:4px 0 6px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:2px 0 8px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
-th,td{border-bottom:1px solid var(--line);padding:6px 10px 6px 0;text-align:left;vertical-align:top}
-th{color:var(--muted);font-weight:500;font-size:12px}td.n,th.n{text-align:right}
+th,td{border-bottom:1px solid var(--line);padding:7px 10px 7px 0;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:12px;white-space:nowrap}td.n,th.n{text-align:right}
+tbody tr:hover td{background:var(--surface-2)}
 .tw{overflow-x:auto}
-.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;border:1px solid var(--line);white-space:nowrap}
-.pill.warn{background:var(--warn-soft);border-color:transparent}.pill.crit{background:var(--crit-soft);border-color:transparent}.pill.good{background:var(--good-soft);border-color:transparent}.pill.accent{background:var(--accent-soft);color:var(--accent);border-color:transparent}
-.note{font-size:12px;color:var(--muted);margin-top:8px}
+.note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
 .tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--paper);font-size:12px;padding:6px 9px;border-radius:6px;z-index:20;max-width:280px;line-height:1.35}
 .fam{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-.fam .f{border:1px solid var(--line);border-radius:10px;padding:10px 12px}.fam .f b{font-size:15px}.fam .f .m{font-size:12px;color:var(--muted);font-family:var(--mono)}.fam .f .t{font-size:12.5px;margin-top:6px;color:var(--muted)}
-.ledger .e{border-left:3px solid var(--axis);padding:2px 0 2px 10px;margin-bottom:8px;font-size:13px}.ledger .e.unc{border-left-color:var(--warn)}.ledger .e .m{color:var(--muted);font-size:12px;font-family:var(--mono)}
-.foot{font-size:12px;color:var(--muted);margin-top:18px;display:flex;gap:14px;flex-wrap:wrap}
+.fam .f{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface-2)}.fam .f b{font-size:15px}.fam .f .m{font-size:12px;color:var(--muted);font-family:var(--mono)}.fam .f .t{font-size:12.5px;margin-top:6px;color:var(--muted);line-height:1.45}
+.ledger .e{border-left:3px solid var(--axis);padding:2px 0 2px 12px;margin-bottom:10px;font-size:13px;line-height:1.5}.ledger .e.unc{border-left-color:var(--warn)}.ledger .e .m{color:var(--muted);font-size:12px}
+.foot{font-size:11.5px;color:var(--faint);margin-top:22px;display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:10px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}.chip{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--paper);cursor:pointer}.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:transparent}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media (max-width:700px){.meta{display:none}.jump{display:none}}
 </style>
 
-<div class="wrap">
-<header class="top">
-  <h1>조직 진단 대시보드</h1>
+<div class="band"><header class="top">
+  <a class="brand" href="#"><span class="mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M12 7.2v4.3M12 11.5 6.2 17M12 11.5l5.8 5.5"/></svg></span><span><b>조직 시뮬레이터</b><small>Org Structure Studio</small></span></a>
+  <nav class="tabs" aria-label="페이지">
+    <a href="#" aria-current="page">대시보드</a>
+    <a id="simLink" href="https://claude.ai/artifact/HQ3KzvEESS1LVXqyefTGmV" target="_blank" rel="noopener">시뮬레이션</a>
+  </nav>
   <div class="meta" id="meta"><span>데이터 불러오는 중…</span></div>
   <span class="spacer"></span>
-  <a class="link" id="simLink" href="https://claude.ai/artifact/HQ3KzvEESS1LVXqyefTGmV" target="_blank" rel="noopener">시뮬레이션으로 →</a>
-</header>
+</header></div>
 
-<div class="filters">
+<div class="bar"><div class="filters">
   <label for="hq">본부</label><select id="hq"><option value="">전체</option></select>
   <span id="filterNote"></span>
-</div>
+  <span class="spacer"></span>
+  <nav class="jump" id="jump" aria-label="구역 이동"></nav>
+</div></div>
 
+<div class="wrap">
 <div class="tiles" id="tiles"></div>
 <div class="grid" id="grid"></div>
 <footer class="foot">
@@ -132,7 +175,7 @@ function stacked(rows, { label, keys, colors, names }) {
     keys.forEach((k, j) => { const w = (r[k] || 0) / total * plotW; if (w > 0) { s += `<rect class="seg" data-i="${i}" data-k="${k}" x="${x + 1}" y="${y}" width="${Math.max(w - 2, 0)}" height="${H}" rx="${j === keys.length - 1 ? 4 : 0}" fill="${colors[j]}"/>`; if (w > 34) s += `<text x="${x + w / 2}" y="${y + 15}" text-anchor="middle" style="fill:${j >= 2 ? "#fff" : "var(--ink)"}">${r[k]}</text>`; } x += w; });
     s += `<text class="v" x="${labelW + plotW + 8}" y="${y + 15}">${total}</text>`; });
   s += `</svg>`;
-  const wrap = document.createElement("div"); wrap.innerHTML = `<div class="legend">${keys.map((k, j) => `<span><i style="background:${colors[j]}"></i>${esc(names[j])}</span>`).join("")}</div>` + s;
+  const wrap = document.createElement("div"); wrap.style.maxWidth = "760px"; wrap.innerHTML = `<div class="legend">${keys.map((k, j) => `<span><i style="background:${colors[j]}"></i>${esc(names[j])}</span>`).join("")}</div>` + s;
   wrap.querySelectorAll(".seg").forEach((el) => tipOn(el, `${esc(rows[+el.dataset.i][label])} · ${esc(names[keys.indexOf(el.dataset.k)])}: ${rows[+el.dataset.i][el.dataset.k]}건`));
   return wrap;
 }
@@ -140,12 +183,23 @@ function table(rows, cols) {
   if (!rows.length) return `<div class="note">해당 없음</div>`;
   return `<div class="tw"><table><thead><tr>${cols.map((c) => `<th class="${c.n ? "n" : ""}">${esc(c.h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${cols.map((c) => `<td class="${c.n ? "n" : ""}">${c.f ? c.f(r) : esc(r[c.k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
+const SECS = [["people", "인력 구조", "인원·연령·정년 — 구조 개편의 출발점"], ["lineage", "조직 승계", "3개년 명단에서 누가 누구로 이어졌는가"], ["function", "기능과 중복", "같은 일을 여러 곳에서 하고 있는가"], ["mission", "미션 정합성", "담당이 선언한 일을 팀이 맡고 있는가"], ["region", "지역", "전국 국사 구조에서 기능이 어떻게 퍼져 있는가"], ["ledger", "원장", "판단의 전제와 이미 내린 판정"]];
+function sec(id) {
+  const [, title, sub] = SECS.find((x) => x[0] === id); const n = SECS.findIndex((x) => x[0] === id) + 1;
+  const el = document.createElement("div"); el.className = "sec"; el.id = "sec-" + id; el.innerHTML = `<span class="n">${n}</span><h2>${esc(title)}</h2><span class="s">${esc(sub)}</span>`; return el;
+}
+function renderJump() {
+  const j = $("#jump"); j.innerHTML = SECS.map(([id, t]) => `<button data-to="${id}">${esc(t)}</button>`).join("");
+  j.querySelectorAll("button").forEach((b) => (b.onclick = () => { $("#sec-" + b.dataset.to)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth", block: "start" }); }));
+  const obs = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) j.querySelectorAll("button").forEach((b) => b.setAttribute("aria-current", String("sec-" + b.dataset.to === e.target.id))); }, { rootMargin: "-60px 0px -70% 0px" });
+  document.querySelectorAll(".sec").forEach((el) => obs.observe(el));
+}
 function card({ title, sub, span = 12, chart, tableHtml, note }) {
   const el = document.createElement("section"); el.className = `card c${span}`;
-  el.innerHTML = `<div class="hd"><h2>${esc(title)}${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</h2><span class="sp"></span>${chart && tableHtml ? '<button class="tv" aria-pressed="false">표로 보기</button>' : ""}</div><div class="chart"></div><div class="tbl" hidden></div>${note ? `<div class="note">${note}</div>` : ""}`;
+  el.innerHTML = `<div class="hd"><h2>${esc(title)}${sub ? `<span class="sub">${esc(sub)}</span>` : ""}</h2><span class="sp"></span>${chart && tableHtml ? '<button class="tv" aria-pressed="false">표</button>' : ""}</div><div class="chart"></div><div class="tbl" hidden></div>${note ? `<div class="note">${note}</div>` : ""}`;
   const c = el.querySelector(".chart"), t = el.querySelector(".tbl");
   if (chart) (typeof chart === "string" ? (c.innerHTML = chart) : c.append(chart)); if (tableHtml) t.innerHTML = tableHtml;
-  if (chart && tableHtml) { const b = el.querySelector(".tv"); b.onclick = () => { const on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", String(on)); c.hidden = on; t.hidden = !on; b.textContent = on ? "차트로 보기" : "표로 보기"; }; }
+  if (chart && tableHtml) { const b = el.querySelector(".tv"); b.onclick = () => { const on = b.getAttribute("aria-pressed") !== "true"; b.setAttribute("aria-pressed", String(on)); c.hidden = on; t.hidden = !on; b.textContent = on ? "차트" : "표"; }; }
   else if (!chart && tableHtml) { t.hidden = false; }
   return el;
 }
@@ -163,7 +217,7 @@ async function load() {
   const hqs = [...new Set(S.data.teams.map((t) => t.hq))].sort((a, b) => a.localeCompare(b, "ko"));
   $("#hq").innerHTML = '<option value="">전체</option>' + hqs.map((h) => `<option>${esc(h)}</option>`).join("");
   $("#hq").onchange = (e) => { S.hq = e.target.value; render(); };
-  render();
+  render(); renderJump();
   const db = await window.claude?.use?.("db").catch(() => null);
   if (db) { db.collection("decisions").onSnapshot((snap) => { const seed = S.decisions.filter((d) => !d.live); S.decisions = [...seed, ...snap.docs.map((d) => ({ ...d.data(), live: true }))]; render(); }, () => {});
             db.collection("directives").onSnapshot((snap) => { const seed = S.directives.filter((d) => !d.live); S.directives = [...seed, ...snap.docs.map((d) => ({ ...d.data(), live: true }))]; render(); }, () => {}); }
@@ -177,23 +231,24 @@ function render() {
   const over50 = teams.reduce((a, t) => a + t.over50, 0), retire5 = teams.reduce((a, t) => a + t.retire5, 0);
   const leaders = D.teams.filter((t) => !hq || t.hq === hq).reduce((a, t) => a + t.leaders + t.upper_leaders, 0), peopleAll = D.teams.filter((t) => !hq || t.hq === hq).reduce((a, t) => a + t.headcount, 0);
   const as = D.age_structure || [], first = as[0], last = as[as.length - 1];
-  const dl = (cur, prev, d = 1, unit = "") => prev == null ? "" : `${cur - prev >= 0 ? "+" : ""}${fmt(cur - prev, d)}${unit} vs ${first.year}`;
+  const dl = (cur, prev, d = 1, unit = "") => prev == null ? "" : `${fmt(Math.abs(cur - prev), d)}${unit} vs ${first.year}`;
   const tiles = [
-    { l: "인원", v: fmt(peopleAll), d: !hq && first ? dl(peopleAll, first.headcount, 0, "명") : "", cls: !hq && first && peopleAll < first.headcount ? "dn" : "" },
-    { l: "팀", v: teams.length, d: "조직장 직할 슬롯 제외" },
+    { l: "인원", v: fmt(peopleAll) + "명", d: !hq && first ? (peopleAll < first.headcount ? "▼ " : "▲ ") + dl(peopleAll, first.headcount, 0, "명") : "", cls: "" },
+    { l: "팀", v: teams.length + "개", d: "조직장 직할 슬롯 제외" },
     { l: "직책자 비율", v: r1(leaders / Math.max(peopleAll, 1) * 100) + "%", d: `${leaders}명` },
-    { l: "평균 연령", v: r1(ageSum / Math.max(ageN, 1)), d: !hq && first ? dl(r1(ageSum / ageN), first.avg_age, 1, "세") : "", cls: "up" },
-    { l: "50세 이상", v: Math.round(over50 / Math.max(people, 1) * 100) + "%", d: !hq && first ? dl(Math.round(over50 / people * 100), first.over_50_pct, 1, "%p") : `${fmt(over50)}명`, cls: "up" },
-    { l: `5년 내 정년`, v: fmt(retire5), d: `${Math.round(retire5 / Math.max(people, 1) * 100)}% · 정년 ${D.meta.retire_age}세` },
+    { l: "평균 연령", v: r1(ageSum / Math.max(ageN, 1)) + "세", d: !hq && first ? dl(r1(ageSum / ageN), first.avg_age, 1, "세") : "", cls: first && r1(ageSum / ageN) < first.avg_age ? "dn" : "up" },
+    { l: "50세 이상", v: Math.round(over50 / Math.max(people, 1) * 100) + "%", d: !hq && first ? dl(Math.round(over50 / people * 100), first.over_50_pct, 1, "%p") : `${fmt(over50)}명`, cls: first && Math.round(over50 / people * 100) < first.over_50_pct ? "dn" : "up" },
+    { l: `5년 내 정년`, v: fmt(retire5) + "명", d: `${Math.round(retire5 / Math.max(people, 1) * 100)}% · 정년 ${D.meta.retire_age}세` },
   ];
-  $("#tiles").innerHTML = tiles.map((t) => `<div class="tile"><div class="l">${esc(t.l)}</div><div class="v">${esc(t.v)}</div><div class="d ${t.d && t.cls ? t.cls : ""}">${esc(t.d)}</div></div>`).join("");
+  const vv = (v) => { const m = /^([\d.,]+)(.*)$/.exec(String(v)); return m ? `${esc(m[1])}<small>${esc(m[2])}</small>` : esc(v); };
+  $("#tiles").innerHTML = tiles.map((t) => `<div class="tile"><div class="l">${esc(t.l)}</div><div class="v">${vv(t.v)}</div><div class="d ${t.d && t.cls ? t.cls : ""}">${esc(t.d)}</div></div>`).join("");
 
-  const g = $("#grid"); g.innerHTML = "";
+  const g = $("#grid"); g.innerHTML = ""; g.append(sec("people"));
   // 3개년 추이 — 소형 다중
   if (as.length > 1 && !hq) {
     const trend = document.createElement("div"); trend.style.cssText = "display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px";
     for (const [k, name, f] of [["headcount", "인원", (v) => fmt(v)], ["avg_age", "평균 연령", (v) => fmt(v, 1)], ["over_50_pct", "50세 이상 %", (v) => fmt(v, 1) + "%"], ["retire_within_5y", "5년 내 정년 인원", (v) => fmt(v)]]) {
-      const box = document.createElement("div"); box.innerHTML = `<div class="note" style="margin:0 0 2px">${name}</div>`; box.append(columns(as.map((r) => ({ y: String(r.year), v: r[k] })), { label: "y", value: "v", fmtv: f, height: 120, tip: (r) => `${r.y}: ${f(r.v)}` })); trend.append(box); }
+      const box = document.createElement("div"); box.innerHTML = `<div class="note" style="margin:0 0 4px;font-weight:500">${name}</div>`; box.append(columns(as.map((r) => ({ y: String(r.year), v: r[k] })), { label: "y", value: "v", fmtv: f, height: 120, tip: (r) => `${r.y}: ${f(r.v)}` })); trend.append(box); }
     g.append(card({ title: "3개년 추이", sub: "매년 1월 명단", chart: trend, tableHtml: table(as, [{ h: "연도", k: "year" }, { h: "인원", k: "headcount", n: 1 }, { h: "평균 연령", k: "avg_age", n: 1 }, { h: "중위 연령", k: "median_age", n: 1 }, { h: "40세 미만 %", k: "under_40_pct", n: 1 }, { h: "50세 이상 %", k: "over_50_pct", n: 1 }, { h: "5년 내 정년", k: "retire_within_5y", n: 1 }]) }));
   }
   // 연령 구조 + 정년 도래
@@ -208,12 +263,14 @@ function render() {
   const hqs = (D.hqs || []).filter((r) => !hq || r.hq_name === hq);
   g.append(card({ title: "본부별 구조", sub: "팀 수·인원·연령·직책자 비율", span: 6, tableHtml: table(hqs, [{ h: "본부", k: "hq_name" }, { h: "담당", k: "dept_count", n: 1 }, { h: "팀", k: "team_count", n: 1 }, { h: "인원", k: "headcount", n: 1 }, { h: "팀당", k: "avg_team_size", n: 1 }, { h: "소규모팀", k: "small_teams", n: 1 }, { h: "평균 연령", k: "avg_age", n: 1 }, { h: "직책자 %", k: "leader_ratio_pct", n: 1 }]) }));
   // 조직 승계
+  g.append(sec("lineage"));
   const lin = D.lineage || []; const keys = ["확정", "높음", "보통", "낮음", "확인필요"]; const cols = ["var(--o1)", "var(--o2)", "var(--o3)", "var(--o4)", "var(--o5)"];
   const byPair = {}; for (const l of lin) { const k = `${l.year_from}→${l.year_to}`; byPair[k] = byPair[k] || { pair: k }; byPair[k][l.confidence] = (byPair[k][l.confidence] || 0) + 1; }
   const review = lin.filter((l) => ["확인필요", "낮음"].includes(l.confidence)).slice(0, 40);
   g.append(card({ title: "조직 승계 판정의 신뢰도", sub: "구성원 이동 · 조직명 · 조직장 3근거 결합", span: 12, chart: stacked(Object.values(byPair), { label: "pair", keys, colors: cols, names: keys }), tableHtml: table(Object.values(byPair), [{ h: "구간", k: "pair" }, ...keys.map((k) => ({ h: k, k, n: 1 }))]), note: `사람 확인이 필요한 건 <b>${lin.filter((l) => ["확인필요", "낮음"].includes(l.confidence)).length}</b>건 — 아래 목록. 확인된 판정은 시뮬레이션 페이지에서 원장(구조)에 기록합니다.` }));
   g.append(card({ title: "승계 검토 필요", sub: "확인필요 · 낮음", span: 12, tableHtml: table(review, [{ h: "구간", f: (r) => `${r.year_from}→${r.year_to}` }, { h: "전년 조직", k: "team_name" }, { h: "인원", k: "headcount", n: 1 }, { h: "판정", k: "status" }, { h: "승계처", f: (r) => esc(r.successor || "—") }, { h: "승계 비율", n: 1, f: (r) => r.successor_share != null ? Math.round(r.successor_share * 100) + "%" : "" }, { h: "신뢰도", f: (r) => `<span class="pill ${r.confidence === "확인필요" ? "crit" : "warn"}">${r.confidence}</span>` }, { h: "근거", k: "evidence" }]) }));
   // 기능 지도 + 병렬 조직군
+  g.append(sec("function"));
   const fm = (D.function_map || []).filter((f) => f.function_name !== "미분류").slice(0, 15);
   g.append(card({ title: "기능 지도", sub: "기능당 수행 팀 수 · 시드 사전", span: 6, chart: hbars(fm, { label: "function_name", value: "team_count", unit: "팀", tip: (r) => `${r.function_name}: ${r.team_count}팀 · ${r.hq_count}본부 · ${fmt(r.total_headcount)}명<br>${r.dispersion}` }), tableHtml: table(fm, [{ h: "기능", k: "function_name" }, { h: "팀", k: "team_count", n: 1 }, { h: "본부", k: "hq_count", n: 1 }, { h: "투입 인원", k: "total_headcount", n: 1 }, { h: "분산", k: "dispersion" }]), note: "미션·주요 R&R 만 태깅. 사전 확정 전이라 참고용." }));
   const fam = D.families || [];
@@ -224,14 +281,17 @@ function render() {
   const pending = dups.filter((d) => !d.dec).length;
   g.append(card({ title: "기능 중복 후보", sub: `미판정 ${pending} · 판정 ${dups.length - pending} · 병렬 조직군 제외`, span: 12, tableHtml: table(dups.slice(0, 40), [{ h: "팀 A", k: "team_a" }, { h: "팀 B", k: "team_b" }, { h: "본부", f: (r) => esc(r.hq_a === r.hq_b ? r.hq_a : r.hq_a + " / " + r.hq_b) }, { h: "역할 유사도", n: 1, f: (r) => fmt(r.similarity, 2) }, { h: "공유 기능", k: "shared_functions" }, { h: "인원", k: "headcount_sum", n: 1 }, { h: "기계 판정", k: "판정초안" }, { h: "사람 판정", f: (r) => r.dec ? `<span class="pill ${r.dec.verdict === "유지" ? "good" : "accent"}">${esc(r.dec.verdict)}</span> <span class="note" style="margin:0">${esc(r.dec.reason)}</span>` : '<span class="pill">미판정</span>' }]), note: "판정은 시뮬레이션 페이지에서 대화로 기록합니다. 기록되면 여기에도 반영됩니다." }));
   // 미션 정합성
+  g.append(sec("mission"));
   const mc = (D.mission_coverage || []).filter((r) => !hq || r.본부 === hq).slice(0, 20);
   if (mc.length) g.append(card({ title: "담당 미션 커버율", sub: "담당이 선언한 R&R 중 하위 팀이 맡고 있는 비율 · 낮은 순", span: 6, chart: hbars(mc, { label: "담당", value: "커버율(%)", unit: "%", max: 100, tip: (r) => `${r.담당} (${r.본부})<br>선언 ${r.선언항목} 중 ${r.커버} 커버 · 하위 팀 ${r.하위팀수}` }), tableHtml: table(mc, [{ h: "본부", k: "본부" }, { h: "담당", k: "담당" }, { h: "선언", k: "선언항목", n: 1 }, { h: "커버", k: "커버", n: 1 }, { h: "%", k: "커버율(%)", n: 1 }, { h: "하위 팀", k: "하위팀수", n: 1 }]), note: "상위 R&R 이 추상적이면 낮게 나옵니다. 비율보다 담당 간 편차를 보십시오." }));
   const mg = (D.mission_gaps || []).filter((r) => !hq || r.본부 === hq).slice(0, 20);
   if (mg.length) g.append(card({ title: "선언했으나 맡은 팀이 없는 항목", sub: "담당 R&R ↔ 팀 R&R", span: 6, tableHtml: table(mg, [{ h: "담당", k: "담당" }, { h: "항목", k: "담당 R&R 항목" }, { h: "최고 유사도", k: "최고유사도", n: 1 }]) }));
   // 지역
+  g.append(sec("region"));
   if ((D.region_grid || []).length) g.append(card({ title: "기능별 권역 분포", sub: "이 기능을 전국 몇 개 단위로 운영하는가", span: 6, tableHtml: table(D.region_grid.slice(0, 12), [{ h: "기능", k: "기능" }, { h: "권역", k: "권역수", n: 1 }, { h: "팀", k: "팀수", n: 1 }, { h: "인원", k: "인원", n: 1 }, { h: "평균 연령", k: "평균연령", n: 1 }, { h: "권역", k: "권역" }]), note: "전국 국사 구조: 조직을 합쳐도 사람은 원래 자리에 남습니다." }));
   if ((D.region_profile || []).length) g.append(card({ title: "권역별 현황", span: 6, chart: hbars(D.region_profile, { label: "권역", value: "인원", unit: "명", tip: (r) => `${r.권역}: ${r.팀수}팀 · ${r.인원}명 · 평균 ${r.평균연령}세` }), tableHtml: table(D.region_profile, [{ h: "권역", k: "권역" }, { h: "팀", k: "팀수", n: 1 }, { h: "인원", k: "인원", n: 1 }, { h: "평균 연령", k: "평균연령", n: 1 }, { h: "팀당", k: "팀당인원", n: 1 }]) }));
   // 원장
+  g.append(sec("ledger"));
   const dirs = S.directives.filter((d) => d.status !== "철회" && d.status !== "만료");
   g.append(card({ title: "전제 — 지침 원장", sub: `${dirs.length}건 · 미확인 ${dirs.filter((d) => d.status === "미확인").length}`, span: 6, chart: `<div class="ledger">${dirs.map((d) => `<div class="e ${d.status === "미확인" ? "unc" : ""}"><b>${esc(d.id)}</b> <span class="pill">${esc(d.kind)}·${esc(d.force)}</span> ${d.status === "미확인" ? '<span class="pill warn">미확인</span>' : ""}<div>${esc(d.text)}</div><div class="m">${esc(d.source)}</div></div>`).join("") || '<div class="note">없음</div>'}</div>` }));
   g.append(card({ title: "판정 원장", sub: `${S.decisions.length}건`, span: 6, chart: `<div class="ledger">${[...S.decisions].reverse().map((d) => `<div class="e"><b>${esc(d.verdict)}</b> · ${esc(d.label)}<div>${esc(d.reason)}</div><div class="m">${esc(d.kind)} · ${esc(d.by || "")} ${esc(d.on || "")}</div></div>`).join("") || '<div class="note">없음</div>'}</div>` }));
