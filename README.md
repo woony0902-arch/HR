@@ -29,6 +29,18 @@ python3 scripts/record_decision.py --list
 판정이 기록되면 다음 진단부터 해당 후보는 **미판정 목록에서 빠집니다.**
 논의 시간을 아직 판단하지 않은 건에만 쓰기 위한 장치입니다.
 
+```bash
+# 지침 기록 — 임원 인터뷰에서 나온 그룹 가이드·경영진 의견을 그 자리에서 남긴다
+python3 scripts/record_directive.py --source 그룹 --channel 구두 --by 유선사업본부장 \
+    --kind 규칙 --force 강제 --text "올해 팀장 보임은 늘리지 않는다" --rule leader_ratio_max=0.11 --year 2027
+python3 scripts/record_directive.py --stale 2027     # 올해 재확인이 필요한 지난해 지침
+python3 scripts/record_directive.py --confirm GRP-2027-01
+```
+
+지침은 매년 달라지고 문서로도 구두로도 오며, HR 담당자가 아니라 임원만 압니다.
+그래서 파일을 미리 채우는 것이 아니라 세션에서 건져 올려 기록하고, 구두 지침은 `미확인`으로
+시작해 전달자 확인을 거칩니다. 규칙은 시뮬레이션이 자동 검사하고 위반에 출처를 남깁니다.
+
 산출물은 `output/` 에 생성됩니다.
 - `01_진단리포트.md` — 구조·동역학·인력·기능 중복 진단
 - `02_시뮬레이션리포트.md` — 시나리오별 Before→After
@@ -144,6 +156,8 @@ src/hrsim/
   geography.py   근무 지역 추론 · 권역별 구조 분석
   naming.py      조직명과 기능의 정합성 진단
   ledger.py      판정 원장 — 사람이 내린 판단의 기록과 반영
+  directives.py  지침 원장 — 그룹 가이드·경영진 의견·시장·HR 철학을 전제로 반영
+  mission.py     상위 미션 ↔ 하위 R&R 정합성, R&R 3개년 궤적, 조직장 교체
   simulate.py    개편 시뮬레이션 엔진
   report.py      리포트 생성
 plans/                     개편 시나리오 YAML

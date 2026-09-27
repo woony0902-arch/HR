@@ -22,16 +22,30 @@ RULE, DIRECTION, PREMISE = "규칙", "방향", "전제"
 
 @dataclass
 class Directive:
+    """지침 한 건.
+
+    지침은 매년 달라지고, 문서로도 구두로도 온다. 그리고 HR 담당자가 아니라
+    임원만 안다. 그래서 원문보다 **출처와 확인 상태**가 중요하다.
+    구두 지침은 임원의 기억이고, 기억은 사람마다 다르다.
+    """
     id: str
-    source: str
-    kind: str
-    force: str
+    source: str                 # 그룹 | 모회사 | CEO | 경영진 | HR실장 | 시장환경 | 규제
+    kind: str                   # 규칙 | 방향 | 전제
+    force: str                  # 강제 | 권고
     text: str
     scope: str = "전사"
     rule: dict[str, Any] = field(default_factory=dict)
     priority_functions: list[str] = field(default_factory=list)
     lens: str = ""
     valid_until: str = ""
+    # --- 출처 기록 (provenance)
+    channel: str = "문서"        # 문서 | 구두
+    conveyed_by: str = ""       # 전달한 사람의 역할 (예: 유선사업본부장). 이름은 쓰지 않는다
+    conveyed_on: str = ""       # 전달 시점
+    recorded_by: str = ""       # 기록자
+    recorded_on: str = ""
+    status: str = "미확인"       # 미확인 | 확인됨 | 만료 | 철회
+    year: int = 0               # 어느 해 개편 사이클의 지침인가
 
     def applies_to(self, hq_name: str | None) -> bool:
         return self.scope == "전사" or (hq_name is not None and self.scope == hq_name)
@@ -113,12 +127,48 @@ class Directives:
                              "처리": "강제 우선, 같은 효력이면 더 엄격한 값"})
         return pd.DataFrame(rows)
 
+    def active(self) -> "Directives":
+        """만료·철회를 뺀 것. 미확인은 포함하되 리포트에 표시된다."""
+        return Directives([d for d in self.items if d.status not in ("만료", "철회")])
+
+    def unconfirmed(self) -> list[Directive]:
+        return [d for d in self.items if d.status == "미확인"]
+
+    def stale(self, current_year: int) -> list[Directive]:
+        """올해 사이클에서 아직 재확인되지 않은 지난해 지침. 매년 달라지므로 갱신을 물어야 한다."""
+        return [d for d in self.items if d.year and d.year < current_year
+                and d.status not in ("만료", "철회")]
+
+    def by_source_text(self) -> pd.DataFrame:
+        """같은 출처의 지침을 전달자별로 늘어놓는다. 임원마다 다르게 기억하는 그룹 가이드가 여기서 드러난다."""
+        rows = [{"출처": d.source, "전달자": d.conveyed_by or "-", "전달방식": d.channel,
+                 "내용": d.text, "상태": d.status, "id": d.id} for d in self.items]
+        return pd.DataFrame(rows).sort_values(["출처", "전달자"]).reset_index(drop=True) if rows else pd.DataFrame()
+
     def to_frame(self) -> pd.DataFrame:
-        rows = [{"id": d.id, "출처": d.source, "구분": d.kind, "효력": d.force,
+        rows = [{"id": d.id, "출처": d.source, "전달": f"{d.channel}·{d.conveyed_by}" if d.conveyed_by else d.channel,
+                 "구분": d.kind, "효력": d.force, "상태": d.status,
                  "범위": d.scope, "내용": d.text,
                  "규칙": ", ".join(f"{k}={v}" for k, v in d.rule.items()) if d.rule else ""}
                 for d in self.items]
         return pd.DataFrame(rows)
+
+    def append(self, directive: Directive, path: str | Path = "config/directives.yaml") -> None:
+        """대화에서 건져 올린 지침을 파일에 덧붙인다. 파일을 손으로 고치지 않게 하기 위한 유일한 쓰기 경로."""
+        path = Path(path)
+        raw = yaml.safe_load(path.read_text(encoding="utf-8")) if path.exists() else {}
+        raw = raw or {}
+        entries = raw.get("directives", [])
+        record = {k: v for k, v in directive.__dict__.items() if v not in ("", [], {}, 0)}
+        entries.append(record)
+        raw["directives"] = entries
+        header = ""
+        if path.exists():
+            text = path.read_text(encoding="utf-8")
+            header = text.split("directives:")[0]
+        path.write_text(header + yaml.safe_dump({"directives": entries}, allow_unicode=True,
+                                                sort_keys=False, width=100), encoding="utf-8")
+        self.items.append(directive)
 
 
 def check_plan_against(directives: Directives, plan_actions: list[dict],

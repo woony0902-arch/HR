@@ -14,6 +14,14 @@
 #   rule    kind=규칙일 때, 시뮬레이션이 검사할 조건 (아래 종류 참고)
 #   scope   전사 | 본부명 | 기능명
 #   valid_until  비우면 다음 개편까지
+#   channel  문서 | 구두        구두 지침은 status=미확인 으로 시작한다
+#   conveyed_by  전달자의 역할 (이름은 쓰지 않는다)
+#   status   미확인 | 확인됨 | 만료 | 철회
+#   year     적용 개편 사이클
+#
+# 이 파일은 손으로 고치지 말고 scripts/record_directive.py 로 기록한다.
+# 지침은 매년 달라지고 문서로도 구두로도 오며, HR 담당자가 아니라 임원만 안다.
+# 그래서 인터뷰 세션에서 건져 올려 기록하고, 구두 지침은 전달자 확인을 거친다.
 #
 # rule 종류
 #   min_team_size: N          팀 최소 인원
@@ -24,49 +32,90 @@
 #   leader_ratio_max: 0.12    직책자 비율 상한
 
 directives:
-  - id: GRP-01
-    source: 그룹
-    kind: 규칙
-    force: 강제
-    text: "(예시) 팀은 5인 이상으로 구성한다. 4인 이하 팀은 파트로 운영한다."
-    rule: {min_team_size: 5}
-    scope: 전사
-
-  - id: GRP-02
-    source: 그룹
-    kind: 규칙
-    force: 권고
-    text: "(예시) 조직장 1인의 직접 관리 인원은 15명을 넘지 않도록 한다."
-    rule: {max_span: 15}
-    scope: 전사
-
-  - id: REG-01
-    source: 규제
-    kind: 규칙
-    force: 강제
-    text: "(예시) 정보보호·개인정보보호·안전보건·감사는 독립 조직으로 유지한다."
-    rule: {protect: [정보보호실, 안전보건실, 감사실]}
-    scope: 전사
-
-  - id: CEO-01
-    source: CEO
-    kind: 방향
-    force: 강제
-    text: "(예시) AI DC와 B2B를 성장축으로 삼는다. 관련 기능은 축소 대상에서 제외한다."
-    scope: 전사
-    priority_functions: [DC, Enterprise]
-
-  - id: MKT-01
-    source: 시장환경
-    kind: 전제
-    force: 권고
-    text: "(예시) 유선 가입자 감소가 지속된다. 유선 영업·구축의 인력 자연감소는 보충하지 않는 것을 기본으로 한다."
-    scope: 유선사업본부
-
-  - id: HR-01
-    source: HR실장
-    kind: 방향
-    force: 권고
-    text: "(예시) 정년 절벽 대응이 중복 제거보다 우선한다. 통합안은 통합 후 조직의 5년 내 정년율을 먼저 본다."
-    scope: 전사
-    lens: 정년대응
+- id: GRP-01
+  source: 그룹
+  kind: 규칙
+  force: 강제
+  text: (예시) 팀은 5인 이상으로 구성한다. 4인 이하 팀은 파트로 운영한다.
+  rule:
+    min_team_size: 5
+  scope: 전사
+  channel: 문서
+  status: 확인됨
+  year: 2026
+  conveyed_by: (예시)
+- id: GRP-02
+  source: 그룹
+  kind: 규칙
+  force: 권고
+  text: (예시) 조직장 1인의 직접 관리 인원은 15명을 넘지 않도록 한다.
+  rule:
+    max_span: 15
+  scope: 전사
+  channel: 문서
+  status: 확인됨
+  year: 2026
+  conveyed_by: (예시)
+- id: REG-01
+  source: 규제
+  kind: 규칙
+  force: 강제
+  text: (예시) 정보보호·개인정보보호·안전보건·감사는 독립 조직으로 유지한다.
+  rule:
+    protect:
+    - 정보보호실
+    - 안전보건실
+    - 감사실
+  scope: 전사
+  channel: 문서
+  status: 확인됨
+  year: 2026
+  conveyed_by: (예시)
+- id: CEO-01
+  source: CEO
+  kind: 방향
+  force: 강제
+  text: (예시) AI DC와 B2B를 성장축으로 삼는다. 관련 기능은 축소 대상에서 제외한다.
+  scope: 전사
+  priority_functions:
+  - DC
+  - Enterprise
+  channel: 문서
+  status: 확인됨
+  year: 2026
+  conveyed_by: (예시)
+- id: MKT-01
+  source: 시장환경
+  kind: 전제
+  force: 권고
+  text: (예시) 유선 가입자 감소가 지속된다. 유선 영업·구축의 인력 자연감소는 보충하지 않는 것을 기본으로 한다.
+  scope: 유선사업본부
+  channel: 문서
+  status: 확인됨
+  year: 2026
+  conveyed_by: (예시)
+- id: HR-01
+  source: HR실장
+  kind: 방향
+  force: 권고
+  text: (예시) 정년 절벽 대응이 중복 제거보다 우선한다. 통합안은 통합 후 조직의 5년 내 정년율을 먼저 본다.
+  scope: 전사
+  lens: 정년대응
+  channel: 문서
+  status: 확인됨
+  year: 2026
+  conveyed_by: (예시)
+- id: GRP-2027-01
+  source: 그룹
+  kind: 규칙
+  force: 강제
+  text: (예시·구두) 올해 팀장 보임 수는 전년 대비 늘리지 않는다
+  scope: 전사
+  rule:
+    leader_ratio_max: 0.109
+  channel: 구두
+  conveyed_by: (예시)본부장
+  recorded_by: HR담당
+  recorded_on: '2026-09-27'
+  status: 미확인
+  year: 2027

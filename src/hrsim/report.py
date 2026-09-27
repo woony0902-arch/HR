@@ -102,7 +102,11 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
         add("아래 지침은 조직도 어디에도 없지만 모든 결과의 전제입니다. "
             "**규칙**은 시뮬레이션이 자동 검사하고, **방향**은 해설의 우선순위에, "
             "**전제**는 배경으로 쓰입니다. `config/directives.yaml` 에서 관리합니다.\n")
-        add(_md(guide[["id", "출처", "구분", "효력", "범위", "내용"]], 30))
+        cols = [c for c in ["id", "출처", "전달", "구분", "효력", "상태", "범위", "내용"] if c in guide.columns]
+        add(_md(guide[cols], 30))
+        if "상태" in guide.columns and (guide["상태"] == "미확인").any():
+            add(f"\n🟡 **미확인 지침 {int((guide['상태'] == '미확인').sum())}건** — "
+                "구두로 전달받아 기록한 것입니다. 전달자에게 문구를 확인받기 전까지는 참고로만 쓰십시오.\n")
         conflicts = ctx.get("directive_conflicts")
         if conflicts is not None and len(conflicts):
             add("\n⚠️ **지침 간 충돌**\n")
