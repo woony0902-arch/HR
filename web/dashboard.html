@@ -138,7 +138,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt = (n, d = 0) => Number(n).toLocaleString("ko-KR", { maximumFractionDigits: d, minimumFractionDigits: d });
 const r1 = (x) => Math.round(x * 10) / 10;
-const S = { data: null, hq: "", decisions: [], directives: [] };
+const S = { data: null, hq: "", decisions: [], directives: [], opinions: [] };
 
 // ------------------------------------------------------------ 차트 도우미 (SVG, 얇은 마크, 헤어라인 격자, 표 보기)
 function tipOn(el, html) { el.addEventListener("mousemove", (e) => { const t = $("#tip"); t.innerHTML = html; t.hidden = false; t.style.left = Math.min(e.clientX + 12, innerWidth - 300) + "px"; t.style.top = (e.clientY + 14) + "px"; }); el.addEventListener("mouseleave", () => { $("#tip").hidden = true; }); }
@@ -183,7 +183,7 @@ function table(rows, cols) {
   if (!rows.length) return `<div class="note">해당 없음</div>`;
   return `<div class="tw"><table><thead><tr>${cols.map((c) => `<th class="${c.n ? "n" : ""}">${esc(c.h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${cols.map((c) => `<td class="${c.n ? "n" : ""}">${c.f ? c.f(r) : esc(r[c.k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
-const SECS = [["people", "인력 구조", "인원·연령·정년 — 구조 개편의 출발점"], ["lineage", "조직 승계", "3개년 명단에서 누가 누구로 이어졌는가"], ["function", "기능과 중복", "같은 일을 여러 곳에서 하고 있는가"], ["mission", "미션 정합성", "담당이 선언한 일을 팀이 맡고 있는가"], ["region", "지역", "전국 국사 구조에서 기능이 어떻게 퍼져 있는가"], ["ledger", "원장", "판단의 전제와 이미 내린 판정"]];
+const SECS = [["people", "인력 구조", "인원·연령·정년 — 구조 개편의 출발점"], ["lineage", "조직 계보", "전년 조직이 올해 어느 조직으로 이어졌는가 — 사람의 승계와 다른 말"], ["function", "기능과 중복", "같은 일을 여러 곳에서 하고 있는가"], ["mission", "미션 정합성", "담당이 선언한 일을 팀이 맡고 있는가"], ["region", "지역", "전국 국사 구조에서 기능이 어떻게 퍼져 있는가"], ["ledger", "원장", "판단의 전제(지침), 이미 내린 판정, 현업 의견"]];
 function sec(id) {
   const [, title, sub] = SECS.find((x) => x[0] === id); const n = SECS.findIndex((x) => x[0] === id) + 1;
   const el = document.createElement("div"); el.className = "sec"; el.id = "sec-" + id; el.innerHTML = `<span class="n">${n}</span><h2>${esc(title)}</h2><span class="s">${esc(sub)}</span>`; return el;
@@ -209,7 +209,7 @@ async function load() {
   const demo = location.hash === "#demo";
   S.data = await (await fetch(demo ? "data_demo.json" : "data.json")).json();
   S.decisions = (S.data.decisions_seed || []).map((d) => ({ kind: d.kind, label: d.label, verdict: d.verdict, reason: d.reason, by: d.decided_by, on: d.decided_on }));
-  S.directives = (S.data.directives || []).map((d) => ({ id: d.id, source: d.출처, kind: d.구분, force: d.효력, status: d.상태, text: d.내용 }));
+  S.directives = (S.data.directives || []).map((d) => ({ id: d.id, source: d.출처, kind: d.구분, force: d.효력, status: d.상태, text: d.내용, rule: d.규칙 || "" }));
   const m = S.data.meta;
   $("#meta").innerHTML = `<span><b>${m.year}년 1월</b> 기준</span><span><b>${fmt(m.people)}</b>명</span><span>팀 <b>${m.teams}</b></span>${demo ? '<span class="pill warn">합성 데이터</span>' : ""}`;
   $("#footData").textContent = `데이터 생성 ${m.generated}`;
@@ -220,7 +220,9 @@ async function load() {
   render(); renderJump();
   const db = await window.claude?.use?.("db").catch(() => null);
   if (db) { db.collection("decisions").onSnapshot((snap) => { const seed = S.decisions.filter((d) => !d.live); S.decisions = [...seed, ...snap.docs.map((d) => ({ ...d.data(), live: true }))]; render(); }, () => {});
-            db.collection("directives").onSnapshot((snap) => { const seed = S.directives.filter((d) => !d.live); S.directives = [...seed, ...snap.docs.map((d) => ({ ...d.data(), live: true }))]; render(); }, () => {}); }
+            // 지침은 id 로 병합 — 시뮬레이션 페이지에서 수정·철회한 시드 지침이 같은 id 로 덮인다
+            db.collection("directives").onSnapshot((snap) => { const byId = new Map(S.directives.filter((d) => !d.live).map((d) => [d.id, d])); for (const doc of snap.docs) { const d = doc.data(); byId.set(d.id, { ...d, live: true }); } S.directives = [...byId.values()]; render(); }, () => {});
+            db.collection("opinions").onSnapshot((snap) => { S.opinions = snap.docs.map((d) => ({ ...d.data(), live: true })); render(); }, () => {}); }
 }
 
 // ------------------------------------------------------------ 렌더
@@ -267,8 +269,8 @@ function render() {
   const lin = D.lineage || []; const keys = ["확정", "높음", "보통", "낮음", "확인필요"]; const cols = ["var(--o1)", "var(--o2)", "var(--o3)", "var(--o4)", "var(--o5)"];
   const byPair = {}; for (const l of lin) { const k = `${l.year_from}→${l.year_to}`; byPair[k] = byPair[k] || { pair: k }; byPair[k][l.confidence] = (byPair[k][l.confidence] || 0) + 1; }
   const review = lin.filter((l) => ["확인필요", "낮음"].includes(l.confidence)).slice(0, 40);
-  g.append(card({ title: "조직 승계 판정의 신뢰도", sub: "구성원 이동 · 조직명 · 조직장 3근거 결합", span: 12, chart: stacked(Object.values(byPair), { label: "pair", keys, colors: cols, names: keys }), tableHtml: table(Object.values(byPair), [{ h: "구간", k: "pair" }, ...keys.map((k) => ({ h: k, k, n: 1 }))]), note: `사람 확인이 필요한 건 <b>${lin.filter((l) => ["확인필요", "낮음"].includes(l.confidence)).length}</b>건 — 아래 목록. 확인된 판정은 시뮬레이션 페이지에서 원장(구조)에 기록합니다.` }));
-  g.append(card({ title: "승계 검토 필요", sub: "확인필요 · 낮음", span: 12, tableHtml: table(review, [{ h: "구간", f: (r) => `${r.year_from}→${r.year_to}` }, { h: "전년 조직", k: "team_name" }, { h: "인원", k: "headcount", n: 1 }, { h: "판정", k: "status" }, { h: "승계처", f: (r) => esc(r.successor || "—") }, { h: "승계 비율", n: 1, f: (r) => r.successor_share != null ? Math.round(r.successor_share * 100) + "%" : "" }, { h: "신뢰도", f: (r) => `<span class="pill ${r.confidence === "확인필요" ? "crit" : "warn"}">${r.confidence}</span>` }, { h: "근거", k: "evidence" }]) }));
+  g.append(card({ title: "계보 판정의 신뢰도", sub: "전년 조직 → 올해 조직 · 구성원 이동·조직명·조직장 3근거 결합", span: 12, chart: stacked(Object.values(byPair), { label: "pair", keys, colors: cols, names: keys }), tableHtml: table(Object.values(byPair), [{ h: "구간", k: "pair" }, ...keys.map((k) => ({ h: k, k, n: 1 }))]), note: `사람 확인이 필요한 건 <b>${lin.filter((l) => ["확인필요", "낮음"].includes(l.confidence)).length}</b>건 — 아래 목록. 확인된 판정은 시뮬레이션 페이지의 '계보 검토'에서 원장에 기록합니다.` }));
+  g.append(card({ title: "계보 검토 필요", sub: "확인필요 · 낮음", span: 12, tableHtml: table(review, [{ h: "구간", f: (r) => `${r.year_from}→${r.year_to}` }, { h: "전년 조직", k: "team_name" }, { h: "인원", k: "headcount", n: 1 }, { h: "판정", k: "status" }, { h: "이어진 조직", f: (r) => esc(r.successor || "—") }, { h: "이어진 인원", n: 1, f: (r) => r.successor_share != null ? Math.round(r.successor_share * 100) + "%" : "" }, { h: "신뢰도", f: (r) => `<span class="pill ${r.confidence === "확인필요" ? "crit" : "warn"}">${r.confidence}</span>` }, { h: "근거", k: "evidence" }]) }));
   // 기능 지도 + 병렬 조직군
   g.append(sec("function"));
   const fm = (D.function_map || []).filter((f) => f.function_name !== "미분류").slice(0, 15);
@@ -279,7 +281,7 @@ function render() {
   const decided = new Map(S.decisions.filter((d) => d.kind === "중복후보").map((d) => [d.label, d]));
   const dups = (D.duplicates || []).filter((d) => !hq || d.hq_a === hq || d.hq_b === hq).map((d) => ({ ...d, key: [d.team_a, d.team_b].sort().join(" ↔ ") })).map((d) => ({ ...d, dec: decided.get(d.key) }));
   const pending = dups.filter((d) => !d.dec).length;
-  g.append(card({ title: "기능 중복 후보", sub: `미판정 ${pending} · 판정 ${dups.length - pending} · 병렬 조직군 제외`, span: 12, tableHtml: table(dups.slice(0, 40), [{ h: "팀 A", k: "team_a" }, { h: "팀 B", k: "team_b" }, { h: "본부", f: (r) => esc(r.hq_a === r.hq_b ? r.hq_a : r.hq_a + " / " + r.hq_b) }, { h: "역할 유사도", n: 1, f: (r) => fmt(r.similarity, 2) }, { h: "공유 기능", k: "shared_functions" }, { h: "인원", k: "headcount_sum", n: 1 }, { h: "기계 판정", k: "판정초안" }, { h: "사람 판정", f: (r) => r.dec ? `<span class="pill ${r.dec.verdict === "유지" ? "good" : "accent"}">${esc(r.dec.verdict)}</span> <span class="note" style="margin:0">${esc(r.dec.reason)}</span>` : '<span class="pill">미판정</span>' }]), note: "판정은 시뮬레이션 페이지에서 대화로 기록합니다. 기록되면 여기에도 반영됩니다." }));
+  g.append(card({ title: "기능 중복 후보", sub: `미판정 ${pending} · 판정 ${dups.length - pending} · 병렬 조직군 제외`, span: 12, tableHtml: table(dups.slice(0, 40), [{ h: "팀 A", k: "team_a" }, { h: "팀 B", k: "team_b" }, { h: "본부", f: (r) => esc(r.hq_a === r.hq_b ? r.hq_a : r.hq_a + " / " + r.hq_b) }, { h: "역할 유사도", n: 1, f: (r) => fmt(r.similarity, 2) }, { h: "공유 기능", k: "shared_functions" }, { h: "인원", k: "headcount_sum", n: 1 }, { h: "자동 분류", k: "판정초안" }, { h: "사람 판정", f: (r) => r.dec ? `<span class="pill ${r.dec.verdict === "유지" ? "good" : "accent"}">${esc(r.dec.verdict)}</span> <span class="note" style="margin:0">${esc(r.dec.reason)}</span>` : '<span class="pill">미판정</span>' }]), note: "판정은 시뮬레이션 페이지에서 대화로 기록합니다. 기록되면 여기에도 반영됩니다." }));
   // 미션 정합성
   g.append(sec("mission"));
   const mc = (D.mission_coverage || []).filter((r) => !hq || r.본부 === hq).slice(0, 20);
@@ -293,8 +295,10 @@ function render() {
   // 원장
   g.append(sec("ledger"));
   const dirs = S.directives.filter((d) => d.status !== "철회" && d.status !== "만료");
-  g.append(card({ title: "전제 — 지침 원장", sub: `${dirs.length}건 · 미확인 ${dirs.filter((d) => d.status === "미확인").length}`, span: 6, chart: `<div class="ledger">${dirs.map((d) => `<div class="e ${d.status === "미확인" ? "unc" : ""}"><b>${esc(d.id)}</b> <span class="pill">${esc(d.kind)}·${esc(d.force)}</span> ${d.status === "미확인" ? '<span class="pill warn">미확인</span>' : ""}<div>${esc(d.text)}</div><div class="m">${esc(d.source)}</div></div>`).join("") || '<div class="note">없음</div>'}</div>` }));
-  g.append(card({ title: "판정 원장", sub: `${S.decisions.length}건`, span: 6, chart: `<div class="ledger">${[...S.decisions].reverse().map((d) => `<div class="e"><b>${esc(d.verdict)}</b> · ${esc(d.label)}<div>${esc(d.reason)}</div><div class="m">${esc(d.kind)} · ${esc(d.by || "")} ${esc(d.on || "")}</div></div>`).join("") || '<div class="note">없음</div>'}</div>` }));
+  g.append(card({ title: "전제 — 지침", sub: `${dirs.length}건 · 미확인 ${dirs.filter((d) => d.status === "미확인").length} · 철회·만료 제외`, span: 4, chart: `<div class="ledger">${dirs.map((d) => `<div class="e ${d.status === "미확인" ? "unc" : ""}"><b>${esc(d.id)}</b> <span class="pill">${esc(d.kind)}·${esc(d.force)}</span> ${d.status === "미확인" ? '<span class="pill warn">미확인</span>' : ""}<div>${esc(d.text)}</div><div class="m">${esc(d.source)}${d.rule ? " · " + esc(d.rule) : ""}${d.edited_on ? " · 수정 " + esc(d.edited_on) : ""}</div></div>`).join("") || '<div class="note">없음</div>'}</div>` }));
+  g.append(card({ title: "판정", sub: `${S.decisions.length}건`, span: 4, chart: `<div class="ledger">${[...S.decisions].reverse().map((d) => `<div class="e"><b>${esc(d.verdict)}</b> · ${esc(d.label)}<div>${esc(d.reason)}</div><div class="m">${esc(d.kind)} · ${esc(d.by || "")} ${esc(d.on || "")}</div></div>`).join("") || '<div class="note">없음</div>'}</div>` }));
+  const STANCE = { 반대: "crit", 조건부: "warn", 찬성: "good", 보류: "" }; const ops = S.opinions.filter((o) => !hq || o.org === hq || D.teams.some((t) => t.hq === hq && (t.name === o.org || t.dept === o.org)));
+  g.append(card({ title: "현업 의견", sub: `${ops.length}건 · 사실이 아니라 입장 — 출처(역할)와 함께`, span: 4, chart: `<div class="ledger">${[...ops].reverse().map((o) => `<div class="e"><span class="pill ${STANCE[o.stance] || ""}">${esc(o.stance)}</span> <b>${esc(o.org)}</b><div>${esc(o.text)}</div><div class="m">${esc(o.by || "")} · ${esc(o.channel || "")} ${esc(o.on || "")}</div></div>`).join("") || '<div class="note">아직 없음 — 시뮬레이션 페이지에서 개편안에 붙여 기록합니다.</div>'}</div>` }));
 }
 load().catch((e) => { $("#meta").innerHTML = '<span class="pill crit">데이터를 불러오지 못했습니다</span>'; console.error(e); });
 })();
