@@ -1,8 +1,8 @@
-<title>조직 설계 에이전트</title>
+<title>조직 시뮬레이션 에이전트</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
-  --paper:#F3F5F7;--surface:#FFFFFF;--ink:#17202A;--muted:#5F6B78;--line:#D8DEE5;--line-strong:#B9C2CC;
+  --paper:#F3F5F7;--surface:#FFFFFF;--ink:#17202A;--muted:#5F6B78;--faint:#8A95A1;--line:#D8DEE5;--line-strong:#B9C2CC;
   --accent:#1E6F6B;--accent-ink:#FFFFFF;--accent-soft:#E3F0EF;
   --warn:#9A6700;--warn-soft:#FFF4D6;--crit:#A63D3A;--crit-soft:#FBE7E6;--good:#2C6E49;--good-soft:#E3F1E8;
   --user-bubble:#E8EDF2;--shadow:0 1px 2px rgba(23,32,42,.06),0 4px 12px rgba(23,32,42,.05);
@@ -10,11 +10,11 @@
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  color-scheme:dark;--paper:#12171C;--surface:#1A2027;--ink:#E6EAEE;--muted:#9AA5B1;--line:#2A333D;--line-strong:#3B4650;
+  color-scheme:dark;--paper:#12171C;--surface:#1A2027;--ink:#E6EAEE;--muted:#9AA5B1;--faint:#7C8793;--line:#2A333D;--line-strong:#3B4650;
   --accent:#5FB3AE;--accent-ink:#0E1B1A;--accent-soft:#173634;--warn:#E2B14C;--warn-soft:#3A2E10;--crit:#E07A76;--crit-soft:#3D1E1D;
   --good:#7CC59A;--good-soft:#173324;--user-bubble:#242C35;--shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);}}
 :root[data-theme="dark"]{
-  color-scheme:dark;--paper:#12171C;--surface:#1A2027;--ink:#E6EAEE;--muted:#9AA5B1;--line:#2A333D;--line-strong:#3B4650;
+  color-scheme:dark;--paper:#12171C;--surface:#1A2027;--ink:#E6EAEE;--muted:#9AA5B1;--faint:#7C8793;--line:#2A333D;--line-strong:#3B4650;
   --accent:#5FB3AE;--accent-ink:#0E1B1A;--accent-soft:#173634;--warn:#E2B14C;--warn-soft:#3A2E10;--crit:#E07A76;--crit-soft:#3D1E1D;
   --good:#7CC59A;--good-soft:#173324;--user-bubble:#242C35;--shadow:0 1px 2px rgba(0,0,0,.4),0 4px 14px rgba(0,0,0,.35);}
 html,body{height:100%}
@@ -36,7 +36,7 @@ button{font:inherit;color:inherit}
 .tbtn{padding:5px 11px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:12.5px}
 .tbtn:hover{border-color:var(--line-strong)}
 .tbtn[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:transparent}
-.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,3fr) minmax(300px,2fr);gap:16px;padding-block:14px}
+
 .chat{display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
 .log{flex:1;min-height:0;overflow:auto;padding:18px 18px 8px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){.log{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
@@ -97,47 +97,69 @@ button{font:inherit;color:inherit}
 }
 .sidetoggle{display:none}
 @media (max-width:900px){.sidetoggle{display:inline-flex}}
+
+.app{flex:1;min-height:0;display:grid;grid-template-columns:168px minmax(0,1fr) 400px;gap:14px;padding-block:12px}
+.rail{display:flex;flex-direction:column;gap:4px;min-height:0;overflow:auto}
+.rail button{display:flex;align-items:center;gap:9px;text-align:left;padding:9px 11px;border-radius:9px;border:1px solid transparent;background:transparent;cursor:pointer;font-size:13.5px;color:var(--muted)}
+.rail button:hover{background:var(--surface);border-color:var(--line)}
+.rail button[aria-current="true"]{background:var(--surface);border-color:var(--line);color:var(--ink);font-weight:600;box-shadow:var(--shadow)}
+.rail .k{font-family:var(--mono);font-size:11px;width:16px;color:var(--faint);flex:none}
+.rail .grp{font-size:11px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono);padding:10px 11px 3px}
+.work{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
+.work h3{font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin:0 0 10px;font-family:var(--mono)}
+.work .desc{font-size:13px;color:var(--muted);margin:-4px 0 10px}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:9px;font-size:12.5px;color:var(--muted)}
+.field input,.field select,.field textarea{padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;font-size:13.5px}
+.field textarea{min-height:64px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{padding:8px 13px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:13px}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:default}
+.list{display:flex;flex-direction:column;gap:6px}
+.item{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.item .b{flex:1;min-width:0}.item .m{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.item.sel{border-color:var(--accent);background:var(--accent-soft)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.tag{display:inline-flex;gap:6px;align-items:center;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12.5px}
+.tag button{border:0;background:transparent;cursor:pointer;color:inherit;padding:0;font-size:14px;line-height:1}
+.ok{color:var(--good);font-size:12.5px}
+.faint{color:var(--faint)}
+.profile dt{font-size:11.5px;color:var(--muted);font-family:var(--mono);margin-top:8px}.profile dd{margin:0;font-size:13.5px}
+@media (max-width:1000px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto}
+  .rail{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:2px}.rail .grp{display:none}.rail button{white-space:nowrap;padding:7px 11px}
+  .work{max-height:44vh}.work.collapsed{display:none}
+}
 </style>
 
 <header class="top">
-  <h1>조직 설계 에이전트</h1>
+  <h1>조직 시뮬레이션 에이전트</h1>
   <div class="meta" id="meta"><span>데이터 불러오는 중…</span></div>
   <span class="spacer"></span>
+  <a class="tbtn" id="dashLink" href="https://claude.ai/artifact/DjCCtJyf51BniBbhCHX7Bs" target="_blank" rel="noopener" style="text-decoration:none">대시보드 →</a>
   <button class="tbtn sidetoggle" id="sideToggle" aria-pressed="true">작업판</button>
   <button class="tbtn" id="traceToggle" aria-pressed="false" title="모델이 어떤 도구를 호출했는지 표시">추적</button>
   <button class="tbtn" id="resetBtn" title="대화와 편집 중인 개편안을 비웁니다">초기화</button>
 </header>
 
-<div class="main">
+<div class="app">
+  <nav class="rail" id="rail" aria-label="메뉴"></nav>
   <section class="chat" aria-label="대화">
     <div class="log" id="log">
       <div class="msg bot"><div class="who">에이전트</div><div class="body" id="intro">
-        <p>이 도구는 <strong>계산하고 기록합니다. 판단은 하지 않습니다.</strong> 모든 답은 계산 · 가정 · 판단 필요로 나뉩니다. 조직 이름이 모호하면 되묻고, 원장에 쓸 때는 먼저 확인을 구합니다. 사번·나이·성별은 이 페이지 밖으로 나가지 않습니다.</p>
-        <p>아래에서 골라 시작하거나 직접 물어보세요.</p>
+        <p><strong>계산은 즉시, 해설은 대화로, 기록은 폼으로.</strong> 왼쪽 메뉴에서 할 일을 고르세요. 오른쪽 작업판은 모델 없이 바로 동작하고, 대화는 그 결과를 해설하고 '받을 질문'을 붙입니다.</p>
+        <p>모든 답은 계산 · 가정 · 판단 필요로 나뉩니다. 사번·나이·성별은 이 페이지 밖으로 나가지 않습니다.</p>
       </div></div>
     </div>
     <div class="chips" id="chips"></div>
     <form class="compose" id="form">
-      <textarea id="box" rows="1" placeholder="예: 대구랑 부산 구축팀을 합치면 어떻게 돼?" aria-label="질문"></textarea>
+      <textarea id="box" rows="1" placeholder="질문" aria-label="질문"></textarea>
       <button type="button" class="stop" id="stopBtn" hidden>중지</button>
       <button type="submit" class="send" id="sendBtn">보내기</button>
     </form>
   </section>
-
-  <aside class="side" id="side" aria-label="작업판">
-    <div class="card">
-      <h2>편집 중인 개편안</h2>
-      <div id="scenario" class="stack"><div class="empty">아직 없습니다. "A팀과 B팀을 합치면"처럼 말하면 여기에 쌓입니다.</div></div>
-    </div>
-    <div class="card">
-      <h2>마지막 시뮬레이션</h2>
-      <div id="sim"><div class="empty">개편안을 돌리면 Before → After 가 여기에 요약됩니다.</div></div>
-    </div>
-    <div class="card">
-      <h2>원장 <span id="ledgerCount" class="pill" style="margin-left:6px"></span></h2>
-      <div id="ledger" class="ledger"><div class="empty">판정과 지침이 여기에 쌓입니다.</div></div>
-    </div>
-  </aside>
+  <aside class="work" id="work" aria-label="작업판"></aside>
 </div>
 <footer class="foot">
   <span id="footData"></span>
@@ -149,29 +171,28 @@ button{font:inherit;color:inherit}
 <script>
 (() => {
 "use strict";
-const $ = (s) => document.querySelector(s);
+const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm = (s) => String(s ?? "").replace(/[\s\-_/·]/g, "").toLowerCase();
 const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 const r1 = (x) => Math.round(x * 10) / 10;
+const today = () => new Date().toISOString().slice(0, 10);
 
-// ------------------------------------------------------------ 상태
 const S = { data: null, teams: new Map(), scenario: [], lastSim: null, decisions: [], directives: [],
-            turns: [], db: null, sample: null, busy: false, ctl: null, trace: false, toolLimit: 16 };
-try { S.trace = localStorage.getItem("trace") === "1"; } catch {}
+            turns: [], db: null, sample: null, busy: false, ctl: null, trace: false, toolLimit: 16, mode: "find", sel: null, form: null };
+try { S.trace = localStorage.getItem("trace") === "1"; S.mode = localStorage.getItem("mode") || "find"; } catch {}
 
-// ------------------------------------------------------------ 데이터
 async function loadData() {
   const demo = location.hash === "#demo";
-  const res = await fetch(demo ? "data_demo.json" : "data.json");
-  S.data = await res.json();
+  const res = await fetch(demo ? "data_demo.json" : "data.json"); S.data = await res.json();
   S.teams = new Map(S.data.teams.map((t) => [t.code, t]));
   S.decisions = (S.data.decisions_seed || []).map((d) => ({ kind: d.kind, label: d.label, verdict: d.verdict, reason: d.reason, by: d.decided_by, on: d.decided_on, src: "seed" }));
   S.directives = (S.data.directives || []).map((d) => ({ id: d.id, source: d.출처, kind: d.구분, force: d.효력, status: d.상태, scope: d.범위, text: d.내용, rule: d.규칙 || "", src: "seed" }));
   const m = S.data.meta;
   $("#meta").innerHTML = `<span><b>${m.year}년 1월</b> 기준</span><span><b>${m.people.toLocaleString()}</b>명</span><span>팀 <b>${m.teams}</b></span>${demo ? '<span class="pill warn">합성 데이터</span>' : ""}`;
   $("#footData").textContent = `데이터 생성 ${m.generated} · 팀 단위 집계만 포함`;
-  renderChips(); renderSide();
+  if (demo) $("#dashLink").href += "#demo";
+  renderRail(); setMode(S.mode);
 }
 
 // ------------------------------------------------------------ 계산 (③ 실행기, 결정론)
@@ -259,7 +280,7 @@ function simulate(name) {
     사람영향: { "소속 변경 인원": r.moved, "보임 해제 인원": r.surplusLeaders.length, "미배치 인원": r.log.reduce((a, l) => a + (l.unassigned || 0), 0) },
     만들어진조직의연령구조: profile, 지역간통합: cross, 하나로모인기능: merged, 기능결손: lost, 제약위반: viol,
     계산근거: { "팀 수": "조직장 직할 슬롯을 제외한 실제 팀 수", "직책자 수": "보임 플래그 Y 인 인원(팀장·담당·실장·본부장)", span: "팀 인원 − 팀장 수", "보임 해제": "통합 대상 팀장 중 1명(keep_leader 또는 최대 팀)을 제외한 나머지", "소속 변경": "통합·폐지 대상 팀의 전 인원", "5년내정년": `나이 ≥ ${S.data.meta.retire_age - 5}`, "지역 간 통합": "합쳐진 팀들의 추론 지역이 둘 이상", "제약 위반": "기준값 옆에 출처(config 또는 지침 id)" } };
-  S.lastSim = { name, before, after, result }; renderSide();
+  S.lastSim = { name, before, after, result }; renderWork();
   return result;
 }
 
@@ -326,14 +347,14 @@ const TOOLS = [
       return R(rows.slice(0, 12), { 가정: [A.lineage], 주의: [`전체 ${S.data.lineage.length}건 중 확인 필요 ${S.data.lineage.filter((l) => ["확인필요", "낮음"].includes(l.confidence)).length}건`] }); } },
   { name: "edit_scenario", description: "편집 중인 개편안에 액션을 추가(op=MERGE|ABOLISH)하거나 비운다(op=RESET). 누적된다. targets 는 resolve_org 로 얻은 team_code 배열. 보호 조직·기존 '유지' 판정을 건드리면 경고를 돌려준다.",
     inputSchema: { type: "object", properties: { op: { type: "string" }, targets: { type: "array", items: { type: "string" } }, into_name: { type: "string" }, keep_leader: { type: "string" }, reassign_to: { type: "string" } }, required: ["op"] },
-    execute: ({ op, targets, into_name, keep_leader, reassign_to }) => { op = String(op).toUpperCase(); if (op === "RESET") { S.scenario = []; S.lastSim = null; renderSide(); return R({ 현재개편안: [] }); }
+    execute: ({ op, targets, into_name, keep_leader, reassign_to }) => { op = String(op).toUpperCase(); if (op === "RESET") { S.scenario = []; S.lastSim = null; renderWork(); return R({ 현재개편안: [] }); }
       const codes = (targets || []).map(String); const bad = codes.filter((c) => !S.teams.has(c)); if (bad.length) throw new Error(`없는 팀코드: ${bad.join(", ")}. resolve_org 를 먼저.`);
       const warns = []; const prot = protectedOrgs();
       for (const c of codes) { const t = S.teams.get(c); for (const label of [t.name, t.hq, t.dept]) if (prot[label]) warns.push(`${t.name}: 보호 조직 ${label} (${prot[label]}) — 통합·폐지 금지`); for (const d of S.decisions) if (d.verdict === "유지" && d.label.includes(t.name)) warns.push(`${t.name}: 판정 원장에 '유지' (${d.on}, ${d.reason})`); }
       if (op === "MERGE") { if (codes.length < 2 || !into_name) throw new Error("MERGE 는 targets 2개 이상과 into_name 이 필요"); S.scenario.push({ op, targets: codes, into_name: String(into_name), keep_leader: keep_leader ? String(keep_leader) : null }); }
       else if (op === "ABOLISH") { if (codes.length !== 1) throw new Error("ABOLISH 는 target 1개"); S.scenario.push({ op, target: codes[0], reassign_to: reassign_to ? String(reassign_to) : null }); }
       else throw new Error("op 는 MERGE|ABOLISH|RESET");
-      renderSide(); return R({ 현재개편안: S.scenario.map(describeAction) }, { 주의: warns.length ? warns : ["경고 없음"] }); } },
+      renderWork(); return R({ 현재개편안: S.scenario.map(describeAction) }, { 주의: warns.length ? warns : ["경고 없음"] }); } },
   { name: "run_simulation", description: "편집 중인 개편안을 실행해 Before→After 를 계산한다: 구조 델타, 사람 영향(보임 해제 등), 만들어진 조직의 연령 구조, 지역 간 통합, 기능 커버리지, 제약 위반(출처 포함), 지표별 계산근거.",
     inputSchema: { type: "object", properties: { name: { type: "string" } } },
     execute: ({ name }) => R(simulate(String(name || "검토안")), { 근거: ["결정론적 계산 — 같은 개편안에 항상 같은 결과"], 가정: ["근무지는 기존 그대로", "채용·이탈 미반영(구조 효과만)"], 주의: ["지역 간 통합은 인력 집중이 아니라 관리 단위 통합"] }) },
@@ -345,11 +366,11 @@ const TOOLS = [
     execute: async (i) => { if (!i.confirmed) return R({ status: "미기록", 안내: "기록할 내용을 사용자에게 보여주고 확인을 받으세요." });
       const today = new Date().toISOString().slice(0, 10);
       if (i.type === "판정") { const names = (i.targets || []).map(String); if (!names.length || !i.verdict || !i.reason) throw new Error("targets, verdict, reason 필요"); const label = names.length === 2 ? names.sort().join(" ↔ ") : names.sort().join(" + ");
-        const doc = { kind: String(i.kind || "구조"), label, verdict: String(i.verdict), reason: String(i.reason), by: String(i.by || ""), on: today }; await persist("decisions", doc); S.decisions.push({ ...doc, src: "db" }); renderSide(); return R({ 기록됨: label, 판정: doc.verdict }); }
+        const doc = { kind: String(i.kind || "구조"), label, verdict: String(i.verdict), reason: String(i.reason), by: String(i.by || ""), on: today }; await persist("decisions", doc); S.decisions.push({ ...doc, src: "db" }); renderWork(); return R({ 기록됨: label, 판정: doc.verdict }); }
       if (i.type === "지침") { if (!i.source || !i.kind || !i.text) throw new Error("source, kind, text 필요"); if (i.kind === "규칙" && !i.rule) throw new Error("규칙에는 rule(검사 조건)이 필요. 없으면 kind=방향");
         const stem = { 그룹: "GRP", 모회사: "PAR", CEO: "CEO", 경영진: "EXE", HR실장: "HR", 시장환경: "MKT", 규제: "REG" }[i.source] || "DIR"; const year = S.data.meta.year + 1; const n = S.directives.filter((d) => d.id.startsWith(`${stem}-${year}-`)).length + 1;
         const doc = { id: `${stem}-${year}-${String(n).padStart(2, "0")}`, source: String(i.source), kind: String(i.kind), force: String(i.force || "권고"), text: String(i.text), rule: String(i.rule || ""), channel: String(i.channel || "구두"), by: String(i.by || ""), status: (i.channel === "문서") ? "확인됨" : "미확인", year, on: today };
-        await persist("directives", doc); S.directives.push({ ...doc, src: "db" }); renderSide(); return R({ 기록됨: doc.id, 상태: doc.status }, { 주의: doc.status === "미확인" ? ["구두 지침 — 전달자에게 문구 확인 후 확인됨 처리"] : [] }); }
+        await persist("directives", doc); S.directives.push({ ...doc, src: "db" }); renderWork(); return R({ 기록됨: doc.id, 상태: doc.status }, { 주의: doc.status === "미확인" ? ["구두 지침 — 전달자에게 문구 확인 후 확인됨 처리"] : [] }); }
       throw new Error("type 은 판정|지침"); } },
 ];
 function describeAction(a) { const nm = (c) => S.teams.get(c)?.name || c; return a.op === "MERGE" ? `MERGE ${a.targets.map(nm).join(" + ")} → ${a.into_name}` : `ABOLISH ${nm(a.target)}${a.reassign_to ? " → " + nm(a.reassign_to) : ""}`; }
@@ -364,36 +385,124 @@ async function initStore() {
   const db = await window.claude?.use?.("db").catch(() => null);
   if (db) { S.db = db; $("#storeNote").textContent = "원장: 공유 저장소";
     for (const [coll, arr, map] of [["decisions", S.decisions, (d) => ({ ...d, src: "db" })], ["directives", S.directives, (d) => ({ ...d, src: "db" })]])
-      db.collection(coll).onSnapshot((snap) => { const keep = arr.filter((x) => x.src !== "db"); arr.length = 0; arr.push(...keep, ...snap.docs.map((d) => map(d.data()))); renderSide(); }, () => {});
-  } else { $("#storeNote").textContent = "원장: 이 브라우저에만 저장"; try { for (const [coll, arr] of [["decisions", S.decisions], ["directives", S.directives]]) arr.push(...JSON.parse(localStorage.getItem("ledger:" + coll) || "[]").map((d) => ({ ...d, src: "db" }))); } catch {} renderSide(); }
+      db.collection(coll).onSnapshot((snap) => { const keep = arr.filter((x) => x.src !== "db"); arr.length = 0; arr.push(...keep, ...snap.docs.map((d) => map(d.data()))); renderWork(); }, () => {});
+  } else { $("#storeNote").textContent = "원장: 이 브라우저에만 저장"; try { for (const [coll, arr] of [["decisions", S.decisions], ["directives", S.directives]]) arr.push(...JSON.parse(localStorage.getItem("ledger:" + coll) || "[]").map((d) => ({ ...d, src: "db" }))); } catch {} renderWork(); }
 }
 
-// ------------------------------------------------------------ 화면
-function renderSide() {
-  const sc = $("#scenario"); sc.innerHTML = S.scenario.length ? S.scenario.map((a) => `<div class="row"><span class="op">${a.op}</span><span>${esc(describeAction(a).replace(/^\w+ /, ""))}</span></div>`).join("") : '<div class="empty">아직 없습니다. "A팀과 B팀을 합치면"처럼 말하면 여기에 쌓입니다.</div>';
-  const sim = $("#sim");
-  if (S.lastSim) { const { before, after, result } = S.lastSim; const keys = ["팀 수", "직책자 수", "중위 span", "최대 span", "평균 연령"];
-    let h = `<div class="kv"><span class="h">지표</span><span class="h">Before</span><span class="h">After</span><span class="h">Δ</span>`;
-    for (const k of keys) { const d = r1(after[k] - before[k]); h += `<span>${k}</span><span>${before[k]}</span><span>${after[k]}</span><span class="d ${d < 0 ? "neg" : d > 0 ? "pos" : ""}">${d > 0 ? "+" : ""}${d}</span>`; }
-    h += `</div><div class="kv" style="margin-top:8px"><span>소속 변경</span><span></span><span></span><span>${result.사람영향["소속 변경 인원"]}명</span><span>보임 해제</span><span></span><span></span><span>${result.사람영향["보임 해제 인원"]}명</span></div>`;
-    const w = []; for (const x of result.지역간통합) w.push(`<div class="w">지역 간 통합 · ${esc(x.통합조직)} (${esc(x.지역)}) — 사람은 원래 자리에 남습니다</div>`);
-    for (const v of result.제약위반.filter((v) => v.발생 === "신규").slice(0, 6)) w.push(`<div class="w ${v.유형.includes("보호") || v.유형.includes("판정") ? "crit" : ""}">${esc(v.유형)} · ${esc(v.대상)} — ${esc(v.내용)}</div>`);
-    for (const p of result.만들어진조직의연령구조) w.push(`<div class="w">${esc(p.조직)} ${p.인원}명 · 평균 ${p.평균연령}세 · 5년 내 정년 ${p["5년내정년"]}명 (${p["5년내정년율(%)"]}%)</div>`);
-    sim.innerHTML = h + (w.length ? `<div class="warns">${w.join("")}</div>` : ""); }
-  else sim.innerHTML = '<div class="empty">개편안을 돌리면 Before → After 가 여기에 요약됩니다.</div>';
-  const led = $("#ledger"); const unc = S.directives.filter((d) => d.status === "미확인").length;
-  $("#ledgerCount").textContent = `판정 ${S.decisions.length} · 지침 ${S.directives.length}${unc ? ` · 미확인 ${unc}` : ""}`;
-  const items = [...S.directives.map((d) => ({ t: "지침", unc: d.status === "미확인", head: `${d.id} ${d.kind}/${d.force}`, body: d.text, meta: `${d.source}${d.by ? " · " + d.by : ""}${d.status === "미확인" ? " · 미확인" : ""}` })),
-                 ...S.decisions.map((d) => ({ t: "판정", unc: false, head: `${d.verdict} · ${d.label}`, body: d.reason, meta: `${d.by || ""} ${d.on || ""}` }))].reverse();
-  led.innerHTML = items.length ? items.slice(0, 14).map((i) => `<div class="e ${i.unc ? "unc" : ""}"><b>${esc(i.head)}</b><div>${esc(i.body)}</div><div class="m">${esc(i.meta)}</div></div>`).join("") : '<div class="empty">판정과 지침이 여기에 쌓입니다.</div>';
+
+// ------------------------------------------------------------ 메뉴 (기능 구조)
+const ALL = () => TOOLS.map((t) => t.name);
+const MODES = {
+  find:      { grp: "보기", name: "조직 찾기", desc: "조직을 찾아 현황·R&R·3개년 이력을 봅니다. 모델 없이 즉시.", tools: ["resolve_org", "team_profile", "rr_history", "org_overview", "lineage_review", "workforce_risk"], chips: ["대구구축팀 현황", "구축팀은 전국 몇 개야?", "5년 안에 정년이 가장 몰린 조직은?"], hint: "예: 대구구축팀 현황",
+               inst: "지금 메뉴는 '조직 찾기'. 조직 현황·이력 질문에 답한다. 개편안은 편집하지 않는다." },
+  search:    { grp: "보기", name: "R&R 검색", desc: "\"이 업무는 어느 팀 소관인가\". 미션·주요·세부 R&R 전문 검색.", tools: ["search_rr", "resolve_org", "team_profile", "rr_history"], chips: ["해지방어는 어느 팀이 해?", "개인정보는 어느 팀 소관이야?", "2024년에는 해지방어를 누가 했어?"], hint: "예: 해지방어는 어느 팀이 해?",
+               inst: "지금 메뉴는 'R&R 검색'. search_rr 로 찾고 어느 조직 소관인지 문맥과 함께 답한다. 연도를 바꿔 이동을 보여줄 수 있다." },
+  sim:       { grp: "돌려보기", name: "시뮬레이션", desc: "개편안을 쌓고 실행합니다. 작업판에서 직접 조립하거나 말로 시키세요.", tools: ["resolve_org", "team_profile", "edit_scenario", "run_simulation", "recall_ledger", "region_view", "workforce_risk"], chips: ["대구랑 부산 구축팀을 합치면 어떻게 돼?", "방금 돌린 결과를 해설하고 받을 질문을 붙여줘", "정년 대응이 목적이면 이 안이 맞아?"], hint: "예: 대구랑 부산 구축팀을 합치면?",
+               inst: "지금 메뉴는 '시뮬레이션'. 사용자가 개편안을 말하면 resolve_org → edit_scenario → run_simulation 을 한 번에 처리한다. '거기에 C도'는 RESET 없이 추가. 결과는 Before→After 표 하나와 '이 안이 받을 질문' 2~3개로 끝낸다. 작업판에서 이미 실행된 결과가 있으면(아래 요약) 다시 돌리지 말고 그것을 해설한다." },
+  lineage:   { grp: "판정하기", name: "승계 검토", desc: "확인이 필요한 승계 판정을 보고 사람이 확정합니다.", tools: ["lineage_review", "rr_history", "team_profile", "record_entry", "recall_ledger"], chips: ["확인 필요한 승계 건 보여줘", "Infra솔루션팀은 어디로 이어졌어?"], hint: "예: 확인 필요한 승계 건",
+               inst: "지금 메뉴는 '승계 검토'. lineage_review(only_review=true) 로 검토 건을 보여주고, 근거(rr_history)를 함께 제시한다. 판정은 사용자가 하며, 기록은 작업판 폼 또는 record_entry(type=판정, kind=구조)로 한다." },
+  dup:       { grp: "판정하기", name: "중복 판정", desc: "아직 판정되지 않은 기능 중복 후보를 보고 판정을 기록합니다.", tools: ["duplicate_candidates", "team_profile", "rr_history", "parallel_families", "function_view", "record_entry", "recall_ledger"], chips: ["아직 판정 안 된 중복 후보 보여줘", "DC Eng팀이랑 DC솔루션기술팀 R&R 비교해줘"], hint: "예: 미판정 중복 후보",
+               inst: "지금 메뉴는 '중복 판정'. duplicate_candidates 로 미판정 건을 보여주고 두 팀의 R&R 을 대조해 근거를 제시한다. 진성 중복인지 의도된 분산인지는 사용자가 정한다. 기록은 작업판 폼 또는 record_entry(type=판정, kind=중복후보)." },
+  directive: { grp: "기록하기", name: "지침 입력", desc: "그룹·경영진 지침, 시장 환경, HR 철학. 구두 지침은 미확인으로 시작합니다.", tools: ["record_entry", "recall_ledger"], chips: ["그룹에서 올해 팀장 자리는 늘리지 말라고 구두로 내려왔어", "지금 등록된 지침 보여줘"], hint: "예: 그룹에서 ... 라고 했어",
+               inst: "지금 메뉴는 '지침 입력'. 사용자가 지침을 말하면 출처·구분(규칙/방향/전제)·효력·전달방식·전달자를 구조화해 보여주고 확인을 받은 뒤 record_entry(type=지침)로 기록한다. 기계가 검사할 수 없는 말은 방향으로." },
+  ledger:    { grp: "기록하기", name: "원장", desc: "기록된 판정과 지침. 시뮬레이션과 대시보드가 이 전제를 읽습니다.", tools: ["recall_ledger"], chips: ["지침 원장 요약해줘", "구축팀 관련 판정 있어?"], hint: "예: 구축팀 관련 판정",
+               inst: "지금 메뉴는 '원장'. recall_ledger 로 조회해 답한다." },
+  free:      { grp: "", name: "자유 질문", desc: "모든 도구를 씁니다. 무엇이든 물어보세요.", tools: null, chips: ["전사 구조 요약해줘", "지역 조직은 어떻게 나뉘어 있어?", "미션 커버율이 낮은 담당은?"], hint: "무엇이든",
+               inst: "" },
+};
+function renderRail() {
+  let h = "", grp = "";
+  for (const [k, m] of Object.entries(MODES)) { if (m.grp !== grp) { grp = m.grp; if (grp) h += `<div class="grp">${esc(grp)}</div>`; else h += `<div class="grp">&nbsp;</div>`; } h += `<button data-mode="${k}" aria-current="${k === S.mode}"><span class="k">${Object.keys(MODES).indexOf(k) + 1}</span>${esc(m.name)}</button>`; }
+  $("#rail").innerHTML = h; $("#rail").querySelectorAll("button").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
 }
-function renderChips() {
-  const demo = location.hash === "#demo";
-  const qs = demo ? ["구매 기능은 몇 개 팀이 하고 있어?", "경영기획팀 현황", "구매팀이랑 소싱팀을 합치면 어떻게 돼?", "5년 안에 정년이 가장 몰린 조직은?"]
-                  : ["해지방어는 어느 팀이 해?", "구축 기능은 전국 몇 개 팀이 하고 있어?", "대구구축팀 현황", "대구랑 부산 구축팀을 합치면 어떻게 돼?", "5년 안에 정년이 가장 몰린 조직은?", "아직 판정 안 된 중복 후보 보여줘"];
-  $("#chips").innerHTML = qs.map((q) => `<button type="button" class="chip">${esc(q)}</button>`).join("");
-  for (const b of $("#chips").querySelectorAll(".chip")) b.onclick = () => { $("#box").value = b.textContent; $("#form").requestSubmit(); };
+function setMode(k) {
+  S.mode = MODES[k] ? k : "find"; S.form = null; try { localStorage.setItem("mode", S.mode); } catch {}
+  $("#rail").querySelectorAll("button").forEach((b) => b.setAttribute("aria-current", String(b.dataset.mode === S.mode)));
+  const m = MODES[S.mode]; $("#box").placeholder = m.hint;
+  $("#chips").innerHTML = m.chips.map((q) => `<button type="button" class="chip">${esc(q)}</button>`).join("");
+  $("#chips").querySelectorAll(".chip").forEach((b) => (b.onclick = () => { $("#box").value = b.textContent; $("#form").requestSubmit(); }));
+  $("#chips").hidden = false; renderWork();
 }
+
+// ------------------------------------------------------------ 작업판 (모델 없이 동작)
+function renderWork() {
+  const w = $("#work"); const m = MODES[S.mode]; const cards = [];
+  const card = (title, body) => `<div class="card"><h3>${esc(title)}</h3>${body}</div>`;
+  const teamOpts = () => [...S.teams.values()].filter((t) => !t.leader_only).sort((a, b) => a.name.localeCompare(b.name, "ko")).map((t) => `<option value="${esc(t.name)}">`).join("");
+  if (S.mode === "find") {
+    cards.push(card("조직 찾기", `<div class="desc">${esc(m.desc)}</div><div class="field"><input id="findQ" placeholder="조직명 일부 — 예: 구축, DC, 보안" autocomplete="off"></div><div class="list" id="findList"></div>`));
+    if (S.sel) { const t = S.teams.get(S.sel); if (t) { const hist = S.data.lineage.filter((l) => l.team_name === t.name || l.successor === t.name); const dec = S.decisions.filter((d) => d.label.includes(t.name));
+      cards.push(card(t.name, `<dl class="profile"><dt>소속</dt><dd>${esc(t.hq)} · ${esc(t.dept)}</dd><dt>인원 · 팀장 · 지역(추론)</dt><dd>${t.headcount}명 · ${t.leaders} · ${esc(t.region)}</dd><dt>연령</dt><dd>평균 ${r1(t.age_sum / Math.max(t.age_n, 1))}세 · 50세 이상 ${t.over50} · 5년 내 정년 ${t.retire5} (${pct(t.retire5, t.headcount)}%)</dd><dt>기능(시드 사전)</dt><dd>${esc(t.functions.join(", ") || "—")}</dd><dt>미션</dt><dd>${esc(t.rr.mission.join(" / ") || "—")}</dd><dt>주요 R&R</dt><dd>${t.rr.major.slice(0, 5).map((x) => "· " + esc(x)).join("<br>") || "—"}</dd><dt>3개년 이력 (구성원 이동 기반)</dt><dd>${hist.map((l) => `${l.year_from}→${l.year_to} ${esc(l.team_name)} → ${esc(l.successor || "—")} ${l.successor_share != null ? Math.round(l.successor_share * 100) + "%" : ""} <span class="pill">${esc(l.confidence)}</span>`).join("<br>") || "—"}</dd>${dec.length ? `<dt>관련 판정</dt><dd>${dec.map((d) => `${esc(d.verdict)} — ${esc(d.reason)}`).join("<br>")}</dd>` : ""}</dl><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-ask="${esc(t.name)} 현황을 설명하고 눈여겨볼 점을 짚어줘">대화로 해설</button><button class="btn sm" data-ask="${esc(t.name)}의 2024·2025·2026 R&R 변화를 비교해줘">R&R 연도별 비교</button></div>`)); } }
+  } else if (S.mode === "search") {
+    cards.push(card("R&R 검색", `<div class="desc">${esc(m.desc)}</div><div class="row2"><div class="field"><input id="srchQ" placeholder="키워드 — 예: 해지방어" autocomplete="off"></div><div class="field"><select id="srchY">${Object.keys(S.data.rr).sort().reverse().map((y) => `<option>${y}</option>`).join("")}</select></div></div><div class="list" id="srchList"></div>`));
+  } else if (S.mode === "sim") {
+    cards.push(card("개편안 조립", `<div class="desc">팀을 고르고 합칠 이름을 적으세요. 폐지는 흡수할 팀을 고릅니다.</div><datalist id="teamDL">${teamOpts()}</datalist>
+      <div class="tags" id="mergeTags"></div><div class="field"><input id="mergePick" list="teamDL" placeholder="합칠 팀 이름 입력 후 Enter (2개 이상)" autocomplete="off"></div>
+      <div class="row2"><div class="field"><input id="mergeName" placeholder="새 조직 이름 — 예: 영남구축팀"></div><div class="field"><button class="btn" id="mergeAdd">통합 추가</button></div></div>
+      <div class="row2"><div class="field"><input id="abolPick" list="teamDL" placeholder="폐지할 팀" autocomplete="off"></div><div class="field"><input id="abolTo" list="teamDL" placeholder="흡수할 팀 (비우면 미배치)" autocomplete="off"></div></div><div class="field"><button class="btn" id="abolAdd">폐지 추가</button></div>
+      <h3 style="margin-top:6px">편집 중인 개편안</h3><div class="list" id="scnList">${S.scenario.length ? S.scenario.map((a, i) => `<div class="item"><span class="b"><span class="pill accent">${a.op}</span> ${esc(describeAction(a).replace(/^\w+ /, ""))}</span><button class="btn sm" data-del="${i}">삭제</button></div>`).join("") : '<div class="faint">아직 없습니다.</div>'}</div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="btn pri" id="runBtn" ${S.scenario.length ? "" : "disabled"}>실행 (즉시)</button><button class="btn" id="clearBtn">비우기</button></div>`));
+    if (S.lastSim) { const { before, after, result } = S.lastSim; const keys = ["팀 수", "직책자 수", "직책자 비율(%)", "중위 span", "최대 span", "평균 연령"];
+      let h = `<div class="kv"><span class="h">지표</span><span class="h">Before</span><span class="h">After</span><span class="h">Δ</span>`; for (const k of keys) { const d = r1(after[k] - before[k]); h += `<span>${k}</span><span>${before[k]}</span><span>${after[k]}</span><span class="d ${d < 0 ? "neg" : d > 0 ? "pos" : ""}">${d > 0 ? "+" : ""}${d}</span>`; }
+      h += `<span>소속 변경</span><span></span><span></span><span>${result.사람영향["소속 변경 인원"]}명</span><span>보임 해제</span><span></span><span></span><span>${result.사람영향["보임 해제 인원"]}명</span></div>`;
+      const ws = []; for (const p of result.만들어진조직의연령구조) ws.push(`<div class="w">${esc(p.조직)} ${p.인원}명 · 평균 ${p.평균연령}세 · 5년 내 정년 ${p["5년내정년"]}명 (${p["5년내정년율(%)"]}%)</div>`); for (const x of result.지역간통합) ws.push(`<div class="w">지역 간 통합 · ${esc(x.통합조직)} (${esc(x.지역)}) — 사람은 원래 자리에 남습니다</div>`); for (const v of result.제약위반.filter((v) => v.발생 === "신규")) ws.push(`<div class="w ${/보호|판정/.test(v.유형) ? "crit" : ""}">${esc(v.유형)} · ${esc(v.대상)} — ${esc(v.내용)}</div>`); if (result.하나로모인기능.length) ws.push(`<div class="w" style="background:var(--good-soft);color:var(--good)">하나로 모인 기능: ${esc(result.하나로모인기능.join(", "))}</div>`);
+      cards.push(card(`결과 — ${S.lastSim.name}`, h + (ws.length ? `<div class="warns">${ws.join("")}</div>` : "") + `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn pri sm" data-ask="방금 작업판에서 돌린 시뮬레이션 결과를 해설하고 '이 안이 받을 질문'을 붙여줘">해설과 받을 질문 요청</button><button class="btn sm" data-ask="왜 보임 해제가 ${result.사람영향["보임 해제 인원"]}명이야? 계산 근거를 말해줘">왜 그 숫자야?</button></div>`)); }
+  } else if (S.mode === "lineage") {
+    const q = S.data.lineage.filter((l) => ["확인필요", "낮음"].includes(l.confidence));
+    cards.push(card(`검토 필요 ${q.length}건`, `<div class="desc">${esc(m.desc)}</div><div class="list">${q.slice(0, 30).map((l, i) => `<div class="item"><span class="b"><b>${esc(l.team_name)}</b> <span class="m">${l.year_from}→${l.year_to} · ${l.headcount}명 · ${esc(l.status)}</span><br>→ ${esc(l.successor || "승계처 없음")} ${l.successor_share != null ? Math.round(l.successor_share * 100) + "%" : ""} <span class="pill ${l.confidence === "확인필요" ? "crit" : "warn"}">${esc(l.confidence)}</span><br><span class="m">${esc(l.evidence)}</span></span><button class="btn sm" data-judge-lineage="${i}">판정</button></div>`).join("")}</div>`));
+    if (S.form?.type === "lineage") cards.push(formCard("승계 판정 기록", "구조", S.form.targets, ["유지", "통합검토", "R&R재정의", "명칭변경", "보류"], S.form.note));
+  } else if (S.mode === "dup") {
+    const decided = new Set(S.decisions.filter((d) => d.kind === "중복후보").map((d) => d.label));
+    const pend = S.data.duplicates.filter((d) => !decided.has([d.team_a, d.team_b].sort().join(" ↔ ")));
+    cards.push(card(`미판정 ${pend.length}건`, `<div class="desc">${esc(m.desc)}</div><div class="list">${pend.slice(0, 25).map((d, i) => `<div class="item"><span class="b"><b>${esc(d.team_a)}</b> ↔ <b>${esc(d.team_b)}</b><br><span class="m">${esc(d.hq_a)}${d.hq_a !== d.hq_b ? " / " + esc(d.hq_b) : ""} · 유사도 ${d.similarity} · ${d.headcount_sum}명</span><br><span class="m">${esc(d.shared_functions || "")} · ${esc(d.판정초안)}</span></span><button class="btn sm" data-judge-dup="${i}">판정</button></div>`).join("")}</div>`));
+    if (S.form?.type === "dup") cards.push(formCard("중복 판정 기록", "중복후보", S.form.targets, ["유지", "통합검토", "R&R재정의", "명칭변경", "보류"], "같은 후보가 다시 올라오지 않도록 사유를 남깁니다."));
+  } else if (S.mode === "directive") {
+    cards.push(card("지침 기록", `<div class="desc">${esc(m.desc)}</div>
+      <div class="row2"><div class="field">출처<select id="dSrc"><option>그룹</option><option>모회사</option><option>CEO</option><option>경영진</option><option>HR실장</option><option>시장환경</option><option>규제</option></select></div><div class="field">구분<select id="dKind"><option value="방향">방향 — 해설 우선순위</option><option value="규칙">규칙 — 기계 검사</option><option value="전제">전제 — 배경</option></select></div></div>
+      <div class="row2"><div class="field">효력<select id="dForce"><option>권고</option><option>강제</option></select></div><div class="field">전달 방식<select id="dChan"><option>구두</option><option>문서</option></select></div></div>
+      <div class="field">전달자 (역할, 이름 아님)<input id="dBy" placeholder="예: 유선사업본부장"></div>
+      <div class="field">내용<textarea id="dText" placeholder="예: 올해 팀장 보임 수는 전년 대비 늘리지 않는다"></textarea></div>
+      <div class="field">검사 조건 (규칙일 때) <span class="faint">min_team_size=5 · max_span=15 · protect=정보보호실,감사실 · leader_ratio_max=0.11</span><input id="dRule" placeholder="max_span=15"></div>
+      <button class="btn pri" id="dSave">기록</button> <span id="dMsg" class="ok"></span>`));
+    const unc = S.directives.filter((d) => d.status === "미확인");
+    cards.push(card(`지침 ${S.directives.length}건 · 미확인 ${unc.length}`, `<div class="ledger">${[...S.directives].reverse().map((d) => `<div class="e ${d.status === "미확인" ? "unc" : ""}"><b>${esc(d.id)}</b> ${esc(d.kind)}/${esc(d.force)}${d.status === "미확인" ? ' <span class="pill warn">미확인</span>' : ""}<div>${esc(d.text)}</div><div class="m">${esc(d.source)}${d.by ? " · " + esc(d.by) : ""}</div></div>`).join("") || '<div class="faint">없음</div>'}</div>`));
+  } else if (S.mode === "ledger") {
+    cards.push(card("원장", `<div class="field"><input id="ledQ" placeholder="조직명·키워드로 거르기"></div><div class="ledger" id="ledList"></div>`));
+  } else {
+    const h = metrics(S.teams);
+    cards.push(card("전사 한눈에", `<div class="kv" style="grid-template-columns:1fr auto"><span>인원</span><span>${h["총 인원"]}</span><span>팀</span><span>${h["팀 수"]}</span><span>직책자 비율</span><span>${h["직책자 비율(%)"]}%</span><span>중위 span</span><span>${h["중위 span"]}</span><span>평균 연령</span><span>${h["평균 연령"]}</span><span>판정 / 지침</span><span>${S.decisions.length} / ${S.directives.length}</span></div>`));
+  }
+  w.innerHTML = cards.join(""); bindWork();
+}
+function formCard(title, kind, targets, verdicts, note) {
+  return `<div class="card"><h3>${esc(title)}</h3><div class="desc">${esc(note || "")}</div><div class="tags">${targets.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+    <div class="field">판정<select id="fVerdict">${verdicts.map((v) => `<option>${v}</option>`).join("")}</select></div>
+    <div class="field">사유 (필수)<textarea id="fReason" placeholder="왜 그렇게 판단했는가. 내년에 읽어도 이해되게."></textarea></div>
+    <div class="field">판정자 (역할)<input id="fBy" placeholder="예: HR실장"></div>
+    <div style="display:flex;gap:8px"><button class="btn pri" id="fSave" data-kind="${esc(kind)}">기록</button><button class="btn" id="fCancel">취소</button></div><span id="fMsg" class="ok"></span></div>`;
+}
+function bindWork() {
+  document.querySelectorAll("[data-ask]").forEach((b) => (b.onclick = () => { $("#box").value = b.dataset.ask; $("#form").requestSubmit(); }));
+  const fq = $("#findQ"); if (fq) { const run = () => { const q = fq.value.trim(); const list = $("#findList"); if (!q) { list.innerHTML = ""; return; } const r = resolveOrg(q); const rows = r.matches.slice(0, 10); list.innerHTML = rows.map((t) => `<div class="item ${S.sel === t.team_code ? "sel" : ""}" data-sel="${esc(t.team_code)}" style="cursor:pointer"><span class="b">${esc(t.팀)}<br><span class="m">${esc(t.본부)} · ${esc(t.담당)} · ${t.인원}명</span></span></div>`).join("") + (r.status === "not_found" && !rows.length ? '<div class="faint">없습니다</div>' : ""); list.querySelectorAll("[data-sel]").forEach((el) => (el.onclick = () => { S.sel = el.dataset.sel; renderWork(); $("#findQ").value = q; run(); })); }; fq.oninput = run; if (S.sel) { fq.value = S.teams.get(S.sel)?.name || ""; run(); } }
+  const sq = $("#srchQ"); if (sq) { const run = () => { const q = sq.value.trim().toLowerCase(), y = $("#srchY").value, rr = S.data.rr[y] || {}; const list = $("#srchList"); if (q.length < 2) { list.innerHTML = ""; return; } const hits = []; for (const [name, r] of Object.entries(rr)) { const text = r.mission + " " + r.major + " " + (r.detail || ""); const i = text.toLowerCase().indexOf(q); if (i >= 0) hits.push({ name, r, ctx: text.slice(Math.max(0, i - 50), i + 80).replace(/\n/g, " ") }); }
+      list.innerHTML = `<div class="faint" style="margin-bottom:6px">${y}년 · ${hits.length}개 조직</div>` + hits.slice(0, 20).map((h) => `<div class="item"><span class="b"><b>${esc(h.name)}</b> <span class="m">${esc(h.r.parent)} · ${esc(h.r.hq)}</span><br><span class="m" style="font-family:var(--sans)">…${esc(h.ctx)}…</span></span></div>`).join("") + (hits.length ? `<button class="btn sm" style="margin-top:8px" data-ask="${esc(y)}년 R&R에서 '${esc(sq.value.trim())}'는 어느 조직 소관인지 정리하고, 여러 조직이면 왜 나뉘어 있는지 R&R을 대조해줘">대화로 해설</button>` : ""); document.querySelectorAll("[data-ask]").forEach((b) => (b.onclick = () => { $("#box").value = b.dataset.ask; $("#form").requestSubmit(); })); }; sq.oninput = run; $("#srchY").onchange = run; }
+  const mp = $("#mergePick"); if (mp) { S.mergeSet = S.mergeSet || []; const draw = () => { $("#mergeTags").innerHTML = S.mergeSet.map((c, i) => `<span class="tag">${esc(S.teams.get(c)?.name || c)}<button data-rm="${i}" aria-label="제거">×</button></span>`).join(""); $("#mergeTags").querySelectorAll("[data-rm]").forEach((b) => (b.onclick = () => { S.mergeSet.splice(+b.dataset.rm, 1); draw(); })); }; draw();
+    mp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); const r = resolveOrg(mp.value); if (r.status === "ok") { const c = r.matches[0].team_code; if (!S.mergeSet.includes(c)) S.mergeSet.push(c); mp.value = ""; draw(); } else mp.setCustomValidity(r.question || "없는 조직"), mp.reportValidity(), setTimeout(() => mp.setCustomValidity(""), 1500); } };
+    $("#mergeAdd").onclick = () => { const name = $("#mergeName").value.trim(); if (S.mergeSet.length < 2 || !name) { $("#mergeName").setCustomValidity("팀 2개 이상과 새 이름이 필요합니다"); $("#mergeName").reportValidity(); setTimeout(() => $("#mergeName").setCustomValidity(""), 1500); return; } S.scenario.push({ op: "MERGE", targets: [...S.mergeSet], into_name: name, keep_leader: null }); S.mergeSet = []; renderWork(); };
+    $("#abolAdd").onclick = () => { const r = resolveOrg($("#abolPick").value); if (r.status !== "ok") return; const to = $("#abolTo").value.trim(); const rt = to ? resolveOrg(to) : null; S.scenario.push({ op: "ABOLISH", target: r.matches[0].team_code, reassign_to: rt?.status === "ok" ? rt.matches[0].team_code : null }); renderWork(); };
+    document.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => { S.scenario.splice(+b.dataset.del, 1); S.lastSim = null; renderWork(); }));
+    $("#runBtn").onclick = () => { try { simulate("검토안"); } catch (e) { alert(e.message); } };
+    $("#clearBtn").onclick = () => { S.scenario = []; S.lastSim = null; S.mergeSet = []; renderWork(); }; }
+  document.querySelectorAll("[data-judge-lineage]").forEach((b) => (b.onclick = () => { const q = S.data.lineage.filter((l) => ["확인필요", "낮음"].includes(l.confidence)); const l = q[+b.dataset.judgeLineage]; S.form = { type: "lineage", targets: [l.team_name, l.successor || "(승계처 없음)"], note: `${l.year_from}→${l.year_to} · ${l.evidence}` }; renderWork(); $("#fReason")?.focus(); }));
+  document.querySelectorAll("[data-judge-dup]").forEach((b) => (b.onclick = () => { const decided = new Set(S.decisions.filter((d) => d.kind === "중복후보").map((d) => d.label)); const pend = S.data.duplicates.filter((d) => !decided.has([d.team_a, d.team_b].sort().join(" ↔ "))); const d = pend[+b.dataset.judgeDup]; S.form = { type: "dup", targets: [d.team_a, d.team_b] }; renderWork(); $("#fReason")?.focus(); }));
+  const fs = $("#fSave"); if (fs) { fs.onclick = async () => { const reason = $("#fReason").value.trim(); if (!reason) { $("#fReason").setCustomValidity("사유는 필수입니다"); $("#fReason").reportValidity(); setTimeout(() => $("#fReason").setCustomValidity(""), 1500); return; } const names = S.form.targets.filter((t) => !t.startsWith("(")); const label = names.length === 2 ? [...names].sort().join(" ↔ ") : [...names].sort().join(" + "); const doc = { kind: fs.dataset.kind, label, verdict: $("#fVerdict").value, reason, by: $("#fBy").value.trim(), on: today() }; fs.disabled = true; try { await persist("decisions", doc); S.decisions.push({ ...doc, src: "db" }); S.form = null; renderWork(); } catch (e) { fs.disabled = false; $("#fMsg").textContent = "저장 실패: " + (e?.code || e?.message || ""); } }; $("#fCancel").onclick = () => { S.form = null; renderWork(); }; }
+  const ds = $("#dSave"); if (ds) { ds.onclick = async () => { const text = $("#dText").value.trim(), kind = $("#dKind").value, rule = $("#dRule").value.trim(), source = $("#dSrc").value; if (!text) { $("#dText").setCustomValidity("내용이 필요합니다"); $("#dText").reportValidity(); setTimeout(() => $("#dText").setCustomValidity(""), 1500); return; } if (kind === "규칙" && !rule) { $("#dRule").setCustomValidity("규칙에는 검사 조건이 필요합니다. 없으면 '방향'으로."); $("#dRule").reportValidity(); setTimeout(() => $("#dRule").setCustomValidity(""), 2000); return; }
+      const stem = { 그룹: "GRP", 모회사: "PAR", CEO: "CEO", 경영진: "EXE", HR실장: "HR", 시장환경: "MKT", 규제: "REG" }[source]; const year = S.data.meta.year + 1; const n = S.directives.filter((d) => d.id.startsWith(`${stem}-${year}-`)).length + 1; const chan = $("#dChan").value;
+      const doc = { id: `${stem}-${year}-${String(n).padStart(2, "0")}`, source, kind, force: $("#dForce").value, text, rule, channel: chan, by: $("#dBy").value.trim(), status: chan === "문서" ? "확인됨" : "미확인", year, on: today() };
+      ds.disabled = true; try { await persist("directives", doc); S.directives.push({ ...doc, src: "db" }); renderWork(); } catch (e) { ds.disabled = false; $("#dMsg").textContent = "저장 실패: " + (e?.code || ""); } }; }
+  const lq = $("#ledQ"); if (lq) { const run = () => { const q = lq.value.trim(); const items = [...S.directives.map((d) => ({ unc: d.status === "미확인", head: `${d.id} ${d.kind}/${d.force}`, body: d.text, meta: `${d.source}${d.by ? " · " + d.by : ""}${d.status === "미확인" ? " · 미확인" : ""}` })), ...S.decisions.map((d) => ({ head: `${d.verdict} · ${d.label}`, body: d.reason, meta: `${d.kind} · ${d.by || ""} ${d.on || ""}` }))].reverse().filter((i) => !q || (i.head + i.body).includes(q)); $("#ledList").innerHTML = items.map((i) => `<div class="e ${i.unc ? "unc" : ""}"><b>${esc(i.head)}</b><div>${esc(i.body)}</div><div class="m">${esc(i.meta)}</div></div>`).join("") || '<div class="faint">없음</div>'; }; lq.oninput = run; run(); }
+}
+
 function md(text) {
   // 최소 마크다운: 제목, 굵게, 코드, 목록, 파이프 표
   const lines = String(text).split("\n"); let out = "", i = 0;
@@ -410,83 +519,77 @@ function md(text) {
   return out;
 }
 function addUser(text) { const d = document.createElement("div"); d.className = "msg user"; d.textContent = text; $("#log").append(d); scroll(); }
-function addBot() { const d = document.createElement("div"); d.className = "msg bot"; d.innerHTML = `<div class="who">에이전트</div><div class="body"><div class="thinking"><i></i>생각하는 중…</div></div><div class="trace" ${S.trace ? "" : "hidden"}></div>`; $("#log").append(d); scroll(); return d; }
+function addBot() { const d = document.createElement("div"); d.className = "msg bot"; d.innerHTML = `<div class="who">에이전트 · ${esc(MODES[S.mode].name)}</div><div class="body"><div class="thinking"><i></i>생각하는 중…</div></div><div class="trace" ${S.trace ? "" : "hidden"}></div>`; $("#log").append(d); scroll(); return d; }
 function scroll() { const l = $("#log"); l.scrollTop = l.scrollHeight; }
 
-// ------------------------------------------------------------ 규칙 (① 해석기 · ④ 해설기 지침)
 function rules() {
   const m = S.data.meta; const dirs = S.directives.filter((d) => d.status !== "철회" && d.status !== "만료").map((d) => `- [${d.id}·${d.source}·${d.kind}·${d.status}] ${d.text}`).join("\n");
+  const mode = MODES[S.mode]; const sc = S.scenario.length ? "현재 편집 중인 개편안: " + S.scenario.map(describeAction).join("; ") : "편집 중인 개편안 없음";
+  const last = S.lastSim ? `작업판에서 실행된 마지막 시뮬레이션(${S.lastSim.name}): ${JSON.stringify({ 개편안: S.lastSim.result.개편안, 사람영향: S.lastSim.result.사람영향, 만들어진조직: S.lastSim.result.만들어진조직의연령구조, 지역간통합: S.lastSim.result.지역간통합, 신규제약위반: S.lastSim.result.제약위반.filter((v) => v.발생 === "신규"), 구조델타: S.lastSim.result.구조델타, 계산근거: S.lastSim.result.계산근거 })}` : "";
   return `당신은 조직 개편 논의를 돕는 분석 도구입니다. HR 담당자와 조직 책임자(깐깐하고 논리적인 임원)가 함께 봅니다. 한국어로 답합니다.
 기준 데이터: ${m.year}년 1월 명단 ${m.people}명(3개년), 팀 R&R(2024·2025·2026). 도구가 돌려주는 값만 사실입니다.
 
 ## 절대 규칙
-1. 조직명을 지어내지 않는다. 조직을 다루기 전에 resolve_org 를 호출하고, ambiguous/not_found 면 후보를 보여주며 되묻는다. 확인된 team_code 만 다른 도구에 넘긴다.
-2. 숫자를 계산하거나 추정하지 않는다. 도구 결과만 인용한다. 없는 수치는 "자료에 없다"고 말한다.
+1. 조직명을 지어내지 않는다. 조직을 다루기 전에 resolve_org 를 호출하고, ambiguous/not_found 면 후보를 보여주며 되묻는다.
+2. 숫자를 계산하거나 추정하지 않는다. 도구 결과와 아래 작업판 결과만 인용한다. 없는 수치는 "자료에 없다"고 말한다.
 3. 판단하지 않는다. "통합해야 한다", "권고한다", "비효율적이다" 금지. "이렇게 하면 무엇이 달라지고 어떤 비용이 생기는지"를 말한다.
 4. 개인을 다루지 않는다. 특정인 평가·배치·거명 요청은 범위 밖이라고 답한다.
-5. 원장 기록(record_entry)은 먼저 기록할 내용을 보여주고 사용자가 동의한 다음 턴에 confirmed=true 로 호출한다. 동의 전에 호출하지 않는다.
+5. 원장 기록(record_entry)은 먼저 내용을 보여주고 사용자가 동의한 다음 턴에 confirmed=true 로 호출한다.
 
 ## 답변 형식
-결론 숫자를 첫 문장에. 서론·인사 없음. 한 답변에 표는 하나(파이프 표), 문단은 짧게.
-**계산** 도구 결과 · **가정** 도구의 '가정' 필드 · **판단 필요** 사람이 정할 것 — 이 세 묶음으로 끝맺는다.
-숫자마다 출처(어느 도구·자료·연도)를 붙인다. "왜 그 숫자냐"에는 도구의 계산근거를 옮긴다.
-시뮬레이션 결과는 Before→After 표로 보여주고 끝에 **이 안이 받을 질문** 2~3개를 붙인다.
-개편안 요청("A와 B를 합치면")은 resolve_org → edit_scenario(op=MERGE, into_name 은 사용자가 말하지 않았으면 자연스럽게 지어 제안) → run_simulation 순서로 한 번에 처리한다. "거기에 C도"는 RESET 하지 말고 추가한다.
+결론 숫자를 첫 문장에. 서론·인사 없음. 표는 하나(파이프 표), 문단은 짧게.
+**계산** · **가정** · **판단 필요** 세 묶음으로 끝맺는다. 숫자마다 출처(도구·자료·연도).
+시뮬레이션은 Before→After 표와 **이 안이 받을 질문** 2~3개.
 
-## 되물어야 할 때
-조직명이 모호할 때 · 통합 후 팀장을 누구로 할지 정해지지 않았는데 사용자가 물을 때 · 개편 의도(효율화/기능집중/정년대응/지역재편)가 결과 해석을 바꿀 때.
+## 지금 메뉴
+${mode.inst || "자유 질문. 모든 도구를 쓴다."}
+${sc}
+${last}
 
-## 전제 — 지침 원장 (모든 판단은 이 위에서. 미확인은 참고로만)
+## 전제 — 지침 원장 (미확인은 참고로만)
 ${dirs || "- (없음)"}
 
 ## 이 회사에 대해
-- 전국에 국사·사옥이 있다. 지역 조직을 합쳐도 사람은 원래 자리에 남는다 — 지역 간 통합은 관리 단위 통합이지 인력 집중이 아니다.
+- 전국에 국사·사옥이 있다. 지역 조직을 합쳐도 사람은 원래 자리에 남는다.
 - 부서 코드는 재사용되어 조직의 정체성이 아니다. 3개년 이력은 구성원 이동으로 추정한다.
 - 기능 분류 사전은 시드 상태라 기능 지도 수치는 과다 집계될 수 있다.
-- 판정 원장에 ${S.decisions.length}건이 있다. 이미 판정된 건은 다시 논쟁하지 말고 그 판정을 먼저 알린다.`;
+- 판정 원장 ${S.decisions.length}건. 이미 판정된 건은 다시 논쟁하지 말고 그 판정을 먼저 알린다.`;
 }
 
-// ------------------------------------------------------------ 대화
 async function send(text) {
   if (S.busy || !S.data) return;
-  if (!S.sample) { const n = document.createElement("div"); n.className = "msg bot"; n.innerHTML = '<div class="who">에이전트</div><div class="body err">이 화면에서는 Claude 에 질문할 수 없습니다. claude.ai 뷰어에서 열어 주세요.</div>'; $("#log").append(n); scroll(); return; }
+  if (!S.sample) { const n = document.createElement("div"); n.className = "msg bot"; n.innerHTML = '<div class="who">에이전트</div><div class="body err">이 화면에서는 Claude 에 질문할 수 없습니다. claude.ai 뷰어에서 열어 주세요. 작업판은 그대로 쓸 수 있습니다.</div>'; $("#log").append(n); scroll(); return; }
   S.busy = true; $("#sendBtn").disabled = true; $("#stopBtn").hidden = false; $("#chips").hidden = true;
   addUser(text); const bot = addBot(); const body = bot.querySelector(".body"), trace = bot.querySelector(".trace");
   S.turns.push({ role: "user", content: text });
-  // 64KiB 한도: 오래된 턴부터 버린다
-  let budget = 40000; const kept = []; for (let i = S.turns.length - 1; i >= 0; i--) { budget -= S.turns[i].content.length; if (budget < 0 && kept.length >= 2) break; kept.unshift(S.turns[i]); } S.turns = kept;
-  const tools = TOOLS.slice(0, S.toolLimit).map((t) => ({ ...t, execute: async (input, ctx) => { const chip = document.createElement("span"); chip.className = "t"; chip.textContent = "⚙ " + t.name; trace.append(chip); try { const out = await t.execute(input || {}, ctx); return JSON.stringify(out); } catch (e) { chip.textContent += " ✗"; throw e; } } }));
-  S.ctl = new AbortController(); let finalText = "";
+  let budget = 36000; const kept = []; for (let i = S.turns.length - 1; i >= 0; i--) { budget -= S.turns[i].content.length; if (budget < 0 && kept.length >= 2) break; kept.unshift(S.turns[i]); } S.turns = kept;
+  const allow = MODES[S.mode].tools; const tools = TOOLS.filter((t) => !allow || allow.includes(t.name)).slice(0, S.toolLimit).map((t) => ({ ...t, execute: async (input, ctx) => { const chip = document.createElement("span"); chip.className = "t"; chip.textContent = "⚙ " + t.name; trace.append(chip); try { const out = await t.execute(input || {}, ctx); return JSON.stringify(out); } catch (e) { chip.textContent += " ✗"; throw e; } } }));
+  S.ctl = new AbortController();
   try {
-    const { text: answer, truncated } = await S.sample([{ role: "user", content: rules() }, ...S.turns], { tools, signal: S.ctl.signal, cache: false, modelTier: "default",
-      onText: ({ text: t }) => { finalText = t; body.innerHTML = md(t); scroll(); } });
-    finalText = answer; body.innerHTML = md(answer) + (truncated ? '<p class="err">답이 길어 잘렸습니다. 나눠서 물어보세요.</p>' : "");
-    S.turns.push({ role: "assistant", content: answer });
+    const { text: answer, truncated } = await S.sample([{ role: "user", content: rules() }, ...S.turns], { tools, signal: S.ctl.signal, cache: false, modelTier: "default", onText: ({ text: t }) => { body.innerHTML = md(t); scroll(); } });
+    body.innerHTML = md(answer) + (truncated ? '<p class="err">답이 길어 잘렸습니다. 나눠서 물어보세요.</p>' : ""); S.turns.push({ role: "assistant", content: answer });
   } catch (e) {
     const copy = { not_granted: "이 페이지가 Claude 를 쓰도록 허용되지 않았습니다.", rate_limited: "요청이 많습니다. 잠시 후 다시 시도하세요.", prompt_too_large: "대화가 길어졌습니다. 초기화 후 다시 물어보세요.", tools_unavailable: "이 뷰어에서는 도구 호출을 지원하지 않습니다.", refused: "이 요청에는 답할 수 없습니다.", cancelled: "" }[e?.code] ?? `오류가 났습니다 (${e?.code || "unknown"}). 다시 시도해 보세요.`;
     body.innerHTML = (e?.text ? md(e.text) : "") + (copy ? `<p class="err">${esc(copy)}</p>` : (e?.code === "cancelled" ? '<p class="err">중지했습니다.</p>' : ""));
     if (e?.text) S.turns.push({ role: "assistant", content: e.text }); else S.turns.pop();
-  } finally { S.busy = false; $("#sendBtn").disabled = false; $("#stopBtn").hidden = true; S.ctl = null; scroll(); }
+  } finally { S.busy = false; $("#sendBtn").disabled = false; $("#stopBtn").hidden = true; S.ctl = null; scroll(); renderWork(); }
 }
 
-// ------------------------------------------------------------ 이벤트
 $("#form").addEventListener("submit", (e) => { e.preventDefault(); const t = $("#box").value.trim(); if (!t) return; $("#box").value = ""; $("#box").style.height = ""; send(t); });
 $("#box").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("#form").requestSubmit(); } });
 $("#box").addEventListener("input", (e) => { e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px"; });
 $("#stopBtn").onclick = () => S.ctl?.abort();
-$("#resetBtn").onclick = () => { S.turns = []; S.scenario = []; S.lastSim = null; $("#log").querySelectorAll(".msg").forEach((m, i) => { if (i) m.remove(); }); $("#chips").hidden = false; renderSide(); };
+$("#resetBtn").onclick = () => { S.turns = []; S.scenario = []; S.lastSim = null; S.sel = null; S.form = null; $("#log").querySelectorAll(".msg").forEach((m, i) => { if (i) m.remove(); }); $("#chips").hidden = false; renderWork(); };
 $("#traceToggle").onclick = (e) => { S.trace = !S.trace; e.currentTarget.setAttribute("aria-pressed", String(S.trace)); document.querySelectorAll(".trace").forEach((t) => (t.hidden = !S.trace)); try { localStorage.setItem("trace", S.trace ? "1" : "0"); } catch {} };
 $("#traceToggle").setAttribute("aria-pressed", String(S.trace));
-if (matchMedia("(max-width:900px)").matches) { $("#side").classList.add("collapsed"); $("#sideToggle").setAttribute("aria-pressed", "false"); }
-$("#sideToggle").onclick = (e) => { const s = $("#side"); s.classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-pressed", String(!s.classList.contains("collapsed"))); };
-
-window.__hr = { S, TOOLS, simulate, resolveOrg, renderSide };   // 점검용 — 콘솔에서 도구를 직접 호출할 수 있다
-// ------------------------------------------------------------ 시작
+if (matchMedia("(max-width:1000px)").matches) { $("#work").classList.add("collapsed"); $("#sideToggle").setAttribute("aria-pressed", "false"); }
+$("#sideToggle").onclick = (e) => { const s = $("#work"); s.classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-pressed", String(!s.classList.contains("collapsed"))); };
+window.__hr = { S, TOOLS, simulate, resolveOrg, renderWork, MODES };   // 점검용
 loadData().catch((e) => { $("#meta").innerHTML = `<span class="pill crit">데이터를 불러오지 못했습니다</span>`; console.error(e); });
 (async () => {
   const sample = await window.claude?.use?.("sample").catch(() => null);
-  if (sample) { S.sample = sample; try { const lim = await sample.limits(); if (lim?.tools?.maxCount) S.toolLimit = Math.min(TOOLS.length, lim.tools.maxCount); if (!lim?.tools) { $("#intro").insertAdjacentHTML("beforeend", '<p class="err">이 뷰어는 도구 호출을 지원하지 않아 계산 기능을 쓸 수 없습니다.</p>'); } } catch {} }
-  else $("#intro").insertAdjacentHTML("beforeend", '<p class="err">이 화면에서는 Claude 에 질문할 수 없습니다. claude.ai 에서 열어 주세요.</p>');
+  if (sample) { S.sample = sample; try { const lim = await sample.limits(); if (lim?.tools?.maxCount) S.toolLimit = Math.min(TOOLS.length, lim.tools.maxCount); if (!lim?.tools) $("#intro").insertAdjacentHTML("beforeend", '<p class="err">이 뷰어는 도구 호출을 지원하지 않아 대화의 계산 기능을 쓸 수 없습니다. 작업판은 동작합니다.</p>'); } catch {} }
+  else $("#intro").insertAdjacentHTML("beforeend", '<p class="err">이 화면에서는 Claude 에 질문할 수 없습니다. 작업판은 동작합니다.</p>');
   await initStore();
 })();
 })();
