@@ -422,8 +422,7 @@ const TOOLS = [
     inputSchema: { type: "object", properties: { op: { type: "string" }, targets: { type: "array", items: { type: "string" } }, into_name: { type: "string" }, keep_leader: { type: "string" }, reassign_to: { type: "string" } }, required: ["op"] },
     execute: ({ op, targets, into_name, keep_leader, reassign_to }) => { op = String(op).toUpperCase(); if (op === "RESET") { S.scenario = []; S.lastSim = null; renderWork(); return R({ 현재개편안: [] }); }
       const codes = (targets || []).map(String); const bad = codes.filter((c) => !S.teams.has(c)); if (bad.length) throw new Error(`없는 팀코드: ${bad.join(", ")}. resolve_org 를 먼저.`);
-      const warns = []; const prot = protectedOrgs();
-      for (const c of codes) { const t = S.teams.get(c); for (const label of [t.name, t.hq, t.dept]) if (prot[label]) warns.push(`${t.name}: 보호 조직 ${label} (${prot[label]}) — 통합·폐지 금지`); for (const d of S.decisions) if (d.verdict === "유지" && d.label.includes(t.name)) warns.push(`${t.name}: 판정 원장에 '유지' (${d.on}, ${d.reason})`); }
+      const warns = actionWarnings({ targets: codes }).map((w) => `${w.label} — ${w.text}`);
       if (op === "MERGE") { if (codes.length < 2 || !into_name) throw new Error("MERGE 는 targets 2개 이상과 into_name 이 필요"); S.scenario.push({ op, targets: codes, into_name: String(into_name), keep_leader: keep_leader ? String(keep_leader) : null }); }
       else if (op === "ABOLISH") { if (codes.length !== 1) throw new Error("ABOLISH 는 target 1개"); S.scenario.push({ op, target: codes[0], reassign_to: reassign_to ? String(reassign_to) : null }); }
       else throw new Error("op 는 MERGE|ABOLISH|RESET");
@@ -473,6 +472,14 @@ async function saveDirective(doc, prev) {
 async function deleteDirective(d) {
   if (d._docId) { await remove("directives", d._docId); afterWrite("directives", null, d._docId); return "삭제"; }
   await saveDirective({ ...d, status: "철회" }, d); return "철회(config 시드 지침은 삭제 대신 철회)";
+}
+// 액션 하나가 건드리는 보호 조직·기존 판정 (작업판과 edit_scenario 가 같이 쓴다)
+function actionWarnings(a) {
+  const out = [], prot = protectedOrgs();
+  for (const c of (a.targets || [a.target])) { const t = S.teams.get(c); if (!t) continue;
+    for (const label of [t.name, t.hq, t.dept]) if (prot[label]) out.push({ crit: true, label: `보호 조직 · ${t.name}`, text: `${label} — 통합·폐지 금지 (${prot[label]})` });
+    for (const d of S.decisions) if (d.label.includes(t.name)) out.push({ crit: d.verdict === "유지", label: `${d.verdict} 판정 · ${t.name}`, text: `${d.on || ""} ${d.reason}` }); }
+  return out;
 }
 function describeAction(a) { const nm = (c) => S.teams.get(c)?.name || c; return a.op === "MERGE" ? `MERGE ${a.targets.map(nm).join(" + ")} → ${a.into_name}` : `ABOLISH ${nm(a.target)}${a.reassign_to ? " → " + nm(a.reassign_to) : ""}`; }
 function dice(a, b) { const tok = (s) => new Set(String(s).toLowerCase().match(/[가-힣a-z0-9]{2,}/g) || []); const x = tok(a), y = tok(b); if (!x.size || !y.size) return 0; let n = 0; for (const t of x) if (y.has(t)) n++; return 2 * n / (x.size + y.size); }
@@ -579,7 +586,7 @@ function renderWork() {
       <div class="tags" id="mergeTags"></div><div class="field"><input id="mergePick" list="teamDL" placeholder="합칠 팀 이름 입력 후 Enter (2개 이상)" autocomplete="off"></div>
       <div class="row2"><div class="field"><input id="mergeName" placeholder="새 조직 이름 — 예: 영남구축팀"></div><div class="field"><button class="btn" id="mergeAdd">통합 추가</button></div></div>
       <div class="row2"><div class="field"><input id="abolPick" list="teamDL" placeholder="폐지할 팀" autocomplete="off"></div><div class="field"><input id="abolTo" list="teamDL" placeholder="흡수할 팀 (비우면 미배치)" autocomplete="off"></div></div><div class="field"><button class="btn" id="abolAdd">폐지 추가</button></div>
-      <h3 style="margin-top:14px">편집 중인 개편안${S.scenario.length ? `<span class="cnt">${S.scenario.length}</span>` : ""}</h3><div class="list" id="scnList">${S.scenario.length ? S.scenario.map((a, i) => `<div class="item"><span class="b"><span class="pill accent">${a.op}</span> ${esc(describeAction(a).replace(/^\w+ /, ""))}</span><button class="btn sm" data-del="${i}">삭제</button></div>`).join("") : '<div class="faint">아직 없습니다.</div>'}</div>
+      <h3 style="margin-top:14px">편집 중인 개편안${S.scenario.length ? `<span class="cnt">${S.scenario.length}</span>` : ""}</h3><div class="list" id="scnList">${S.scenario.length ? S.scenario.map((a, i) => { const ws = actionWarnings(a); return `<div class="item"><span class="b"><span class="pill accent">${a.op}</span> ${esc(describeAction(a).replace(/^\w+ /, ""))}${ws.length ? "<br>" + ws.map((w) => `<span class="pill ${w.crit ? "crit" : "warn"}" title="${esc(w.text)}">${esc(w.label)}</span>`).join(" ") : ""}</span><button class="btn sm" data-del="${i}">삭제</button></div>`; }).join("") : '<div class="faint">아직 없습니다.</div>'}</div>
       <div class="btnrow"><button class="btn pri" id="runBtn" ${S.scenario.length ? "" : "disabled"}>실행 (즉시)</button><button class="btn" id="clearBtn">비우기</button></div>`));
     { const a = S.assume, basis = effectiveBasis(); const ruleOpts = S.directives.filter((d) => d.kind === "규칙" && d.status !== "철회" && d.status !== "만료");
       cards.push(card("이번 시뮬레이션의 기준" + (hasAssume() ? ' <span class="pill accent">가정 적용 중</span>' : ""), `<div class="desc">지침·원장에 없는 조건을 여기서 잠깐 가정할 수 있습니다. 대화창에 "팀 최소 6명으로 가정하고"라고 말해도 같은 곳에 반영됩니다. 원장에는 남지 않습니다.</div>
@@ -604,6 +611,7 @@ function renderWork() {
       let h = `<div class="kv"><span class="h">지표</span><span class="h">현재</span><span class="h">개편 후</span><span class="h">증감</span>`; for (const k of keys) { const d = r1(after[k] - before[k]); h += `<span>${k}</span><span>${before[k]}</span><span>${after[k]}</span><span class="d ${d < 0 ? "neg" : d > 0 ? "pos" : ""}">${d > 0 ? "+" : ""}${d}</span>`; }
       h += `<span>소속 변경</span><span></span><span></span><span>${result.사람영향["소속 변경 인원"]}명</span><span>보임 해제</span><span></span><span></span><span>${result.사람영향["보임 해제 인원"]}명</span></div>`;
       const ws = []; for (const p of result.만들어진조직의연령구조) ws.push(`<div class="w">${esc(p.조직)} ${p.인원}명 · 평균 ${p.평균연령}세 · 5년 내 정년 ${p["5년내정년"]}명 (${p["5년내정년율(%)"]}%)</div>`); for (const x of result.지역간통합) ws.push(`<div class="w">지역 간 통합 · ${esc(x.통합조직)} (${esc(x.지역)}) — 사람은 원래 자리에 남습니다</div>`); for (const v of result.제약위반.filter((v) => v.발생 === "신규")) ws.push(`<div class="w ${/보호|판정/.test(v.유형) ? "crit" : ""}">${esc(v.유형)} · ${esc(v.대상)} — ${esc(v.내용)}</div>`); if (result.하나로모인기능.length) ws.push(`<div class="w good">하나로 모인 기능: ${esc(result.하나로모인기능.join(", "))}</div>`);
+      if (result.기능결손.length) ws.push(`<div class="w crit">기능 결손 — 개편 후 어느 팀도 맡지 않는 기능: ${esc(result.기능결손.join(", "))}</div>`);
       for (const o of result.현업의견) ws.push(`<div class="w ${STANCE[o.입장] === "crit" ? "crit" : STANCE[o.입장] === "good" ? "good" : ""}">현업 의견 · ${esc(o.조직)} <b>${esc(o.입장)}</b> — ${esc(o.요지)}${o.전달자 ? ` (${esc(o.전달자)})` : ""}</div>`);
       cards.push(card(`결과 · ${esc(S.lastSim.name)}`, h + (ws.length ? `<div class="warns">${ws.join("")}</div>` : "") + `<div class="btnrow"><button class="btn pri sm" data-ask="방금 작업판에서 돌린 시뮬레이션 결과를 해설하고 '이 안이 받을 질문'을 붙여줘">해설과 받을 질문 요청</button><button class="btn sm" data-ask="왜 보임 해제가 ${result.사람영향["보임 해제 인원"]}명이야? 계산 근거를 말해줘">왜 그 숫자야?</button></div>`, "result")); }
   } else if (S.mode === "lineage") {
@@ -653,7 +661,7 @@ function bindWork() {
     $("#mergeAdd").onclick = () => { const name = $("#mergeName").value.trim(); if (S.mergeSet.length < 2 || !name) { $("#mergeName").setCustomValidity("팀 2개 이상과 새 이름이 필요합니다"); $("#mergeName").reportValidity(); setTimeout(() => $("#mergeName").setCustomValidity(""), 1500); return; } S.scenario.push({ op: "MERGE", targets: [...S.mergeSet], into_name: name, keep_leader: null }); S.mergeSet = []; renderWork(); };
     $("#abolAdd").onclick = () => { const r = resolveOrg($("#abolPick").value); if (r.status !== "ok") return; const to = $("#abolTo").value.trim(); const rt = to ? resolveOrg(to) : null; S.scenario.push({ op: "ABOLISH", target: r.matches[0].team_code, reassign_to: rt?.status === "ok" ? rt.matches[0].team_code : null }); renderWork(); };
     document.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => { S.scenario.splice(+b.dataset.del, 1); S.lastSim = null; renderWork(); }));
-    $("#runBtn").onclick = () => { try { simulate("검토안"); } catch (e) { alert(e.message); } };
+    $("#runBtn").onclick = () => { try { simulate("검토안"); } catch (e) { $("#runBtn").setCustomValidity?.(e.message); $("#runBtn").title = e.message; } };
     $("#clearBtn").onclick = () => { S.scenario = []; S.lastSim = null; S.mergeSet = []; renderWork(); }; }
   document.querySelectorAll("[data-judge-lineage]").forEach((b) => (b.onclick = () => { const q = S.data.lineage.filter((l) => ["확인필요", "낮음"].includes(l.confidence)); const l = q[+b.dataset.judgeLineage]; S.form = { type: "lineage", targets: [l.team_name, l.successor || "(승계처 없음)"], note: `${l.year_from}→${l.year_to} · ${l.evidence}` }; renderWork(); $("#fReason")?.focus(); }));
   document.querySelectorAll("[data-judge-dup]").forEach((b) => (b.onclick = () => { const decided = new Set(S.decisions.filter((d) => d.kind === "중복후보").map((d) => d.label)); const pend = S.data.duplicates.filter((d) => !decided.has([d.team_a, d.team_b].sort().join(" ↔ "))); const d = pend[+b.dataset.judgeDup]; S.form = { type: "dup", targets: [d.team_a, d.team_b] }; renderWork(); $("#fReason")?.focus(); }));
