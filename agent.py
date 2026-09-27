@@ -230,10 +230,10 @@ def build_tools(state: State):
         body = rr["미션"] + " " + rr["주요RR"] + " " + rr.get("세부RR", "")
         hit = rr[body.str.contains(query, case=False, regex=False)]
         rows = []
-        for r in hit.head(limit).itertuples():
-            text = " ".join([r.미션, r.주요RR, getattr(r, "세부RR", "")])
+        for r in hit.head(limit).to_dict("records"):
+            text = " ".join([r["미션"], r["주요RR"], r.get("세부RR", "")])
             i = text.lower().find(query.lower())
-            rows.append({"조직": r.조직명, "상위조직": r.상위조직, "본부": getattr(r, "_4", ""),
+            rows.append({"조직": r["조직명"], "상위조직": r["상위조직"], "본부": r.get("본부(시트)", ""),
                          "문맥": text[max(0, i - 40): i + 60].replace("\n", " ")})
         return _json(ToolResult(value={"연도": year, "건수": len(hit), "결과": rows},
                                 basis=[f"{year}년 R&R 정의표 전문 검색 (부분 문자열)"],
@@ -368,8 +368,20 @@ def build_tools(state: State):
             demoted.to_csv(state.local_dir / f"{name}_보임해제.csv", index=False, encoding="utf-8-sig")
         funcs = simulate.function_impact(result, state.tagged)
         value = {
+            "개편안": [n["detail"] for n in result.changelog],
             "구조델타": simulate.metric_delta(result, cfg).to_dict("records"),
             "사람영향": impact,
+            "계산근거": {
+                "팀 수": "조직장 직할 슬롯을 제외한 실제 팀의 고유 코드 수",
+                "직책자 수": "보임 플래그가 Y 인 인원 수 (팀장·담당·실장·본부장 등)",
+                "span": "팀 인원 − 팀장 수. 중위값은 전 팀의 중앙값",
+                "보임 해제": "통합 대상 팀장 중 1명(keep_leader 또는 최장 근속)을 제외한 나머지",
+                "소속 변경": "개편 전후 팀코드가 달라진 인원 수",
+                "5년내정년": f"나이 ≥ {cfg.param('retirement_age', 60) - 5} 인 인원 수",
+                "기능 결손": "개편 전 그 기능을 맡던 팀들의 인원이 개편 후 어느 팀에도 남지 않은 경우",
+                "지역 간 통합": "합쳐진 팀들의 조직명에서 추론한 지역이 둘 이상인 경우",
+                "제약 위반": "config 기본값 또는 지침 원장의 규칙. 위반 항목에 출처(지침 id) 표기",
+            },
             "만들어진조직의연령구조": simulate.changed_org_profile(result, cfg).to_dict("records"),
             "기능결손": funcs["기능 결손"], "하나로모인기능": funcs.get("해소된 중복", []),
             "지역간통합": simulate.cross_region_merges(result).to_dict("records"),
@@ -479,7 +491,15 @@ def system_prompt(state: State) -> str:
 
 ## 답변 형식 — 세 조각으로 나눈다
 **계산** 도구가 돌려준 사실 · **가정** 그 계산의 전제 (도구의 '가정' 필드를 옮긴다) · **판단 필요** 사람이 정해야 할 것
-길게 나열하지 말고 질문에 답이 되는 것부터 말한다. 표는 필요할 때만.
+
+## 말하는 방식 — 논리적이고 깐깐한 임원이 상대다
+- 결론 숫자를 첫 문장에 둔다. 서론·인사·요약 문구 없이 바로 답한다.
+- 숫자마다 출처를 붙인다: 어느 도구, 어느 자료(명단/R&R/보임도), 어느 연도.
+- "왜 그 숫자인가"를 물으면 도구의 '계산근거'를 그대로 옮긴다. 모르면 모른다고 한다.
+- 시뮬레이션 결과는 Before → After 표로 보여주고, 끝에 **"이 안이 받을 질문"** 2~3개를 붙인다
+  (예: "팀장 1명이 두 지역 26명을 관리하는 것이 가능한가", "5년 뒤 15명이 되는 조직을 지금 만드는 이유는").
+- 한 답변에 표는 하나, 문단은 짧게. 길어질 것 같으면 "더 볼까요?"로 끊는다.
+- 사용자가 개편안을 말하면 되묻기 전에 먼저 resolve_org 로 조직을 확인하고, 확인된 것만 추가한다.
 
 ## 되물어야 하는 경우
 조직명이 모호할 때 · 통합 후 팀장을 누구로 할지 정해지지 않았을 때 · 개편 의도(효율화/기능집중/정년대응/지역재편)가 불명확할 때 — 의도에 따라 먼저 말할 지표가 다르다.
@@ -496,6 +516,33 @@ def system_prompt(state: State) -> str:
 """
 
 
+WELCOME = """
+┌────────────────────────────────────────────────────────────────┐
+│  조직 설계 에이전트 v0                                            │
+│  {year}년 1월 기준 {people}명 · 팀 {teams}개 · 판정 {decisions}건 · 지침 {directives}건        │
+└────────────────────────────────────────────────────────────────┘
+이렇게 물어보세요.
+  · 구축 기능은 전국 몇 개 팀이 하고 있어?
+  · 해지방어는 어느 팀 소관이야?
+  · 대구구축팀 현황
+  · 대구랑 부산 구축팀을 합치면 어떻게 돼?        ← 이어서 "거기에 서부도 넣어봐"
+  · 5년 안에 정년이 가장 몰린 조직은?
+  · 구축팀은 국사 때문에 못 합쳐. 그대로 둬야 해.   ← 판정으로 기록됩니다
+  · 그룹에서 올해 팀장 자리 늘리지 말라고 했어.     ← 지침으로 기록됩니다
+
+명령: ?(도움)  상태  초기화  추적  종료
+"""
+
+HELP = """
+  이 도구는 계산하고 기록합니다. 판단은 하지 않습니다.
+  · 모든 답은 [계산] [가정] [판단 필요] 로 나뉩니다. 가정이 틀렸으면 그 자리에서 말씀하세요.
+  · 조직 이름이 모호하면 되묻습니다. 추측하지 않습니다.
+  · 개편안은 말한 순서대로 쌓입니다. '상태'로 확인, '초기화'로 비웁니다.
+  · 원장에 기록할 때는 내용을 먼저 보여드리고 확인을 받습니다.
+  · 사번·나이·성별 같은 개인 정보는 모델에 전달되지 않습니다. 개인 명단은 output/session/ 에만 저장됩니다.
+"""
+
+
 # ============================================================ 대화 루프
 def chat(state: State) -> None:
     import anthropic
@@ -503,16 +550,31 @@ def chat(state: State) -> None:
     tools = build_tools(state)
     system = [{"type": "text", "text": system_prompt(state), "cache_control": {"type": "ephemeral"}}]
     messages: list[dict] = []
-    print(f"조직 설계 에이전트 v0 · {state.year}년 기준 {len(state.snap)}명 · 팀 {state.snap['team_code'].nunique()}개")
-    print("질문을 입력하세요. (종료: quit)\n")
+    trace = False
+    print(WELCOME.format(year=state.year, people=len(state.snap),
+                         teams=structure.actual_teams(state.snap)["team_code"].nunique(),
+                         decisions=len(state.ledger.to_frame()),
+                         directives=len(state.directives.active().items)))
 
     while True:
         try:
-            user = input("나> ").strip()
+            user = input("\n질문> ").strip()
         except (EOFError, KeyboardInterrupt):
             break
-        if not user or user.lower() in ("quit", "exit", "종료"):
+        if not user:
+            continue
+        if user in ("?", "도움", "help"):
+            print(HELP); continue
+        if user in ("종료", "quit", "exit"):
             break
+        if user == "상태":
+            print(f"  편집 중인 개편안: {json.dumps(state.scenario, ensure_ascii=False) if state.scenario else '없음'}")
+            print(f"  판정 원장 {len(state.ledger.to_frame())}건 · 지침 {len(state.directives.active().items)}건 · 대화 {len(messages)//2}턴")
+            continue
+        if user == "초기화":
+            state.scenario.clear(); messages.clear(); print("  개편안과 대화를 비웠습니다."); continue
+        if user == "추적":
+            trace = not trace; print(f"  도구 호출 표시: {'켬' if trace else '끔'}"); continue
         messages.append({"role": "user", "content": user})
 
         runner = client.beta.messages.tool_runner(
@@ -525,12 +587,13 @@ def chat(state: State) -> None:
             tool_response = runner.generate_tool_call_response()
             if tool_response is not None:
                 messages.append(tool_response)
-                for block in message.content:
-                    if block.type == "tool_use":
-                        print(f"   ⚙ {block.name}({json.dumps(block.input, ensure_ascii=False)[:80]})")
+                if trace:
+                    for block in message.content:
+                        if block.type == "tool_use":
+                            print(f"   ⚙ {block.name}({json.dumps(block.input, ensure_ascii=False)[:80]})")
         if final is not None:
             text = "".join(b.text for b in final.content if b.type == "text")
-            print(f"\n에이전트> {text}\n")
+            print("\n" + "─" * 72 + f"\n{text}\n" + "─" * 72)
 
 
 # ============================================================ 도구 자가 점검
