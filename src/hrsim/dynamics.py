@@ -207,3 +207,76 @@ def yearly_summary(members: pd.DataFrame) -> pd.DataFrame:
         avg_tenure=("tenure_years", "mean"),
     ).round(1)
     return base.join(counts, how="left").fillna(0).reset_index()
+
+
+# ---------------------------------------------------------------- 승계 신뢰도
+
+def _name_sim(a: str, b: str) -> float:
+    """조직명 유사도. 접미사가 같고 앞부분이 겹치면 높다."""
+    from .functions import common_suffix, tokenize
+    a, b = str(a or ""), str(b or "")
+    if a == b:
+        return 1.0
+    ta, tb = set(tokenize(a)), set(tokenize(b))
+    dice = 2 * len(ta & tb) / (len(ta) + len(tb)) if ta and tb else 0.0
+    suffix = len(common_suffix(a, b)) >= 2
+    return max(dice, 0.5 if suffix else 0.0)
+
+
+def lineage_confidence(members: pd.DataFrame, leaders: pd.DataFrame | None = None) -> pd.DataFrame:
+    """조직 승계 판정에 신뢰도 등급을 붙인다.
+
+    근거 세 가지를 결합한다.
+      구성원 이동 비율 (명단)  — 이 모듈의 org_transitions
+      조직명 유사도           — 이름이 같거나 접미사·핵심어를 공유하는가
+      조직장 연속성 (보임도)   — 전년 조직장 사번이 후신 조직의 조직장인가
+    근거가 모두 맞으면 '확정', 하나만 있으면 '낮음', 어긋나면 '확인필요'.
+    확인필요 건은 사람이 판정해 원장에 남기는 것을 전제로 한다.
+    """
+    trans = org_transitions(members).copy()
+    leader_of: dict[tuple[int, str], str] = {}
+    if leaders is not None and len(leaders):
+        for row in leaders.itertuples():
+            leader_of[(int(row.연도), str(row.조직).strip())] = str(row.사번)
+
+    grades, evidence = [], []
+    for row in trans.itertuples():
+        share = float(row.successor_share or 0)
+        name_sim = _name_sim(row.team_name, row.successor) if row.successor else 0.0
+        prev_leader = leader_of.get((int(row.year_from), str(row.team_name).strip()))
+        next_leader = leader_of.get((int(row.year_to), str(row.successor).strip())) if row.successor else None
+        same_leader = bool(prev_leader and next_leader and prev_leader == next_leader)
+
+        parts = []
+        if share >= 0.5: parts.append(f"인원 {share:.0%} 승계")
+        if name_sim >= 0.99: parts.append("명칭 동일")
+        elif name_sim >= 0.5: parts.append("명칭 유사")
+        if same_leader: parts.append("조직장 동일")
+
+        if row.status == "해체":
+            grade = "확인필요"; parts = ["잔류 인원 없음 — 실제 폐지인지 확인"]
+        elif row.status == "분산흡수":
+            grade = "확인필요"; parts.append("과반 승계처 없음")
+        elif name_sim >= 0.99 and share >= 0.7:
+            grade = "확정"
+        elif share >= 0.6 and (same_leader or name_sim >= 0.5):
+            grade = "높음"
+        elif share >= 0.5:
+            grade = "보통"
+        elif share >= 0.3:
+            grade = "낮음"
+        else:
+            grade = "확인필요"
+        grades.append(grade); evidence.append(", ".join(parts) or "근거 부족")
+
+    trans["confidence"] = grades
+    trans["evidence"] = evidence
+    order = {"확인필요": 0, "낮음": 1, "보통": 2, "높음": 3, "확정": 4}
+    return trans.sort_values(["confidence", "headcount"], key=lambda c: c.map(order) if c.name == "confidence" else -c
+                             ).reset_index(drop=True)
+
+
+def lineage_review_queue(members: pd.DataFrame, leaders: pd.DataFrame | None = None) -> pd.DataFrame:
+    """사람이 확인해야 할 승계 판정. 대시보드의 '검토 필요' 필터에 해당한다."""
+    lineage = lineage_confidence(members, leaders)
+    return lineage[lineage["confidence"].isin(["확인필요", "낮음"])].reset_index(drop=True)

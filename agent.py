@@ -214,6 +214,87 @@ def build_tools(state: State):
                                 assumptions=["토큰 유사도 0.30 이상이면 '맡고 있음'으로 판정. 상위 R&R이 추상적이면 낮게 나온다"]))
 
     @beta_tool
+    def search_rr(query: str, year: int = 0, limit: int = 12) -> str:
+        """R&R 전문(미션·주요·세부)에서 키워드를 찾는다. "이 업무는 어느 조직 소관인가"에 답한다.
+
+        Args:
+            query: 찾을 말. 예: "해지방어", "개인정보", "도매대가"
+            year: 2024 | 2025 | 2026. 0이면 최신 연도
+            limit: 최대 조직 수
+        """
+        year = year or state.year
+        path = cfg.data_dir / f"rr_team_{year}.csv"
+        if not path.exists():
+            return _json(ToolResult(value={"error": f"{year}년 R&R 자료가 없습니다."}))
+        rr = pd.read_csv(path, dtype=str).fillna("")
+        body = rr["미션"] + " " + rr["주요RR"] + " " + rr.get("세부RR", "")
+        hit = rr[body.str.contains(query, case=False, regex=False)]
+        rows = []
+        for r in hit.head(limit).itertuples():
+            text = " ".join([r.미션, r.주요RR, getattr(r, "세부RR", "")])
+            i = text.lower().find(query.lower())
+            rows.append({"조직": r.조직명, "상위조직": r.상위조직, "본부": getattr(r, "_4", ""),
+                         "문맥": text[max(0, i - 40): i + 60].replace("\n", " ")})
+        return _json(ToolResult(value={"연도": year, "건수": len(hit), "결과": rows},
+                                basis=[f"{year}년 R&R 정의표 전문 검색 (부분 문자열)"],
+                                caveats=["동의어·영문 표기는 잡히지 않는다. 다른 표현으로 다시 찾아볼 것"]))
+
+    @beta_tool
+    def rr_history(team_query: str) -> str:
+        """한 조직(이름 기준)의 2024·2025·2026 미션·주요 R&R을 나란히 보여주고 연도 간 변경폭을 계산한다.
+
+        Args:
+            team_query: 조직명 (연도에 따라 이름이 바뀐 경우 최신 이름)
+        """
+        from hrsim.mission import _sim
+        out, prev_text = {}, None
+        for year in (2024, 2025, 2026):
+            path = cfg.data_dir / f"rr_team_{year}.csv"
+            if not path.exists():
+                continue
+            rr = pd.read_csv(path, dtype=str).fillna("")
+            row = rr[rr["조직명"].str.replace(" ", "") == team_query.replace(" ", "")]
+            if row.empty:
+                out[str(year)] = {"상태": "해당 연도 자료에 없음"}
+                continue
+            r = row.iloc[0]
+            text = r["미션"] + " " + r["주요RR"]
+            entry = {"상위조직": r["상위조직"], "미션": r["미션"][:300], "주요R&R": r["주요RR"][:600]}
+            if prev_text:
+                entry["전년대비변경폭(%)"] = round((1 - _sim(prev_text, text)) * 100)
+            prev_text = text
+            out[str(year)] = entry
+        return _json(ToolResult(value=out, basis=["연도별 R&R 정의표 원문"],
+                                assumptions=["이름이 같은 조직을 같은 조직으로 본다. 개명된 조직은 lineage_review 로 승계를 먼저 확인"],
+                                caveats=["변경폭은 토큰 유사도 기반 — 문구만 다듬은 경우에도 높게 나올 수 있다"]))
+
+    @beta_tool
+    def lineage_review(team_query: str = "", only_review: bool = True, limit: int = 15) -> str:
+        """조직 승계 판정과 신뢰도(확정/높음/보통/낮음/확인필요). 구성원 이동·조직명·조직장 세 근거를 결합한다.
+
+        Args:
+            team_query: 조직명 일부로 필터 (선택)
+            only_review: True면 사람 확인이 필요한 '확인필요·낮음'만
+            limit: 최대 건수
+        """
+        leaders_path = cfg.data_dir / "leaders_3y.csv"
+        leaders = pd.read_csv(leaders_path, dtype=str) if leaders_path.exists() else None
+        lineage = dynamics.lineage_confidence(state.members, leaders)
+        total = len(lineage)
+        if only_review:
+            lineage = lineage[lineage["confidence"].isin(["확인필요", "낮음"])]
+        if team_query:
+            mask = lineage["team_name"].str.contains(team_query, na=False) | lineage["successor"].fillna("").str.contains(team_query)
+            lineage = lineage[mask]
+        cols = ["year_from", "year_to", "team_name", "headcount", "status", "successor", "successor_share", "confidence", "evidence"]
+        return _json(ToolResult(value=lineage[cols].head(limit),
+                                basis=["명단의 구성원 이동", "조직명 유사도", "보임도의 조직장 사번 연속성"],
+                                assumptions=["부서코드는 재사용되어 근거로 쓰지 않는다"],
+                                caveats=[f"전체 승계 판정 {total}건 중 사람 확인 필요 "
+                                         f"{int((dynamics.lineage_confidence(state.members, leaders)['confidence'].isin(['확인필요','낮음'])).sum())}건. "
+                                         "확인된 판정은 record_decision(kind=구조)으로 원장에 남긴다"]))
+
+    @beta_tool
     def add_action(op: str, targets: str, into_name: str = "", into_code: str = "",
                    dept_code: str = "", keep_leader: str = "", reassign_to: str = "", to_dept: str = "") -> str:
         """현재 편집 중인 개편안에 액션을 하나 추가한다. 누적된다. 대상은 반드시 resolve_org 로 얻은 팀코드.
@@ -376,7 +457,8 @@ def build_tools(state: State):
                                 caveats=["구두 지침은 전달자에게 문구를 확인받아야 '확인됨'이 됩니다"] if d.status == "미확인" else []))
 
     return [resolve_org, org_overview, team_profile, function_view, duplicate_candidates, parallel_families,
-            region_view, workforce_risk, mission_alignment, add_action, reset_scenario, run_simulation,
+            region_view, workforce_risk, mission_alignment, search_rr, rr_history, lineage_review,
+            add_action, reset_scenario, run_simulation,
             recall_directives, recall_decisions, record_decision, record_directive]
 
 
@@ -466,6 +548,9 @@ def selftest(state: State) -> None:
         ("region_view", {}),
         ("workforce_risk", {}),
         ("mission_alignment", {}),
+        ("search_rr", {"query": "안전"}),
+        ("rr_history", {"team_query": state.team_name(first_two[0])}),
+        ("lineage_review", {"limit": 5}),
         ("add_action", {"op": "MERGE", "targets": ",".join(first_two), "into_name": "테스트통합팀"}),
         ("run_simulation", {"name": "selftest"}),
         ("reset_scenario", {}),
