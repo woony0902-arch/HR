@@ -10,8 +10,9 @@ from pathlib import Path
 
 import pandas as pd
 
+import sys
 SEED = 20260918
-OUT = Path("data")
+OUT = Path(sys.argv[1] if len(sys.argv) > 1 else "data")
 YEARS = [2024, 2025, 2026]
 
 # (본부코드, 본부명, 담당코드, 담당명, 팀코드, 팀명, 기본인원, 역할)

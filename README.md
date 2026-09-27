@@ -11,6 +11,18 @@
 
 ---
 
+## 에이전트 (v0 초안)
+
+```bash
+export ANTHROPIC_API_KEY=...
+python3 agent.py                                   # 실제 데이터로 대화
+python3 agent.py --data data_demo --ledger data_demo/ledger/decisions.csv   # 합성 데이터로 시연
+python3 agent.py --selftest                        # 모델 없이 도구 16종 점검
+```
+
+도구 16종(조직 해석·현황·기능·중복·지역·인력·미션 정합성·시뮬레이션·원장)을 모델이 호출하고,
+모델은 계산하지도 조직명을 지어내지도 판단하지도 않는다. 시연 대본은 `docs/demo-script.md`.
+
 ## 빠른 시작
 
 ```bash
