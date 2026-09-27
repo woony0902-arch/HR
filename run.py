@@ -12,8 +12,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from hrsim import (dynamics, functions, geography, ledger as ledger_mod, loader,
-                   naming, quality, report, simulate, structure, workforce)
+from hrsim import (directives as directives_mod, dynamics, functions, geography,
+                   ledger as ledger_mod, loader, mission, naming, quality, report,
+                   simulate, structure, workforce)
 from hrsim.config import load_config
 
 
@@ -42,7 +43,13 @@ def diagnose(args) -> None:
     book = ledger_mod.Ledger(args.ledger)
     duplicates = functions.duplicate_candidates(roles, tagged, snap, cfg, families)
 
+    extra = _mission_context(cfg)
+    guide = directives_mod.Directives.load(Path(args.config).parent / "directives.yaml")
+
     ctx = {
+        **extra,
+        "directives": guide.to_frame(),
+        "directive_conflicts": guide.conflicts(),
         "base_year": base_year,
         "years": sorted(members["year"].unique().tolist()),
         "quality_summary": quality.summary(findings),
@@ -90,6 +97,29 @@ def diagnose(args) -> None:
     _print_highlights(ctx)
 
 
+def _mission_context(cfg) -> dict:
+    """담당급 R&R·3개년 R&R·보임도가 있을 때만 수행하는 분석."""
+    import pandas as pd
+    data = cfg.data_dir
+    out: dict = {}
+    upper_path, roles_path = data / "rr_upper_2026.csv", data / "team_roles.csv"
+    if upper_path.exists() and roles_path.exists():
+        upper = pd.read_csv(upper_path, dtype=str).fillna("")
+        roles = pd.read_csv(roles_path, dtype=str).fillna("")
+        if "상위조직" in roles.columns:
+            cov, gaps = mission.mission_alignment(upper, roles)
+            out["mission_coverage"] = cov
+            out["mission_gaps"] = gaps
+            out["orphan_summary"] = mission.orphan_summary(upper, roles)
+    team_files = {y: data / f"rr_team_{y}.csv" for y in (2024, 2025, 2026)}
+    if all(p.exists() for p in team_files.values()):
+        out["rr_trajectory"] = mission.rr_trajectory(team_files)
+    leaders_path = data / "leaders_3y.csv"
+    if leaders_path.exists():
+        out["leader_turnover"] = mission.leader_turnover(pd.read_csv(leaders_path, dtype=str))
+    return out
+
+
 def _print_highlights(ctx: dict) -> None:
     head = ctx["headline"]
     print("\n── 요약 ──")
@@ -110,6 +140,13 @@ def _print_highlights(ctx: dict) -> None:
 
     risk = ctx["succession"]
     print(f"  승계 리스크 '높음' {int((risk['risk'] == '높음').sum())}개 팀")
+    if "mission_coverage" in ctx:
+        cov = ctx["mission_coverage"]
+        print(f"  미션 정합성: 담당 {len(cov)}개 · 평균 커버율 {cov['커버율(%)'].mean():.1f}% "
+              f"· 미커버 항목 {len(ctx['mission_gaps'])}건")
+    if "leader_turnover" in ctx:
+        lt = ctx["leader_turnover"]
+        print("  조직장 교체율: " + " / ".join(f"{r.구간} {r._4}%" for r in lt.itertuples()))
 
     quality_df = ctx["quality_summary"]
     if len(quality_df):
@@ -124,6 +161,7 @@ def run_simulation(args) -> None:
 
     func_dict = functions.load_function_dict(Path(args.config).parent / "function_dict.yaml")
     tagged = functions.tag_functions(roles, func_dict, cfg.roles.get("tagging_types"))
+    guide = directives_mod.Directives.load(Path(args.config).parent / "directives.yaml")
 
     paths = [Path(p) for pattern in args.plans for p in sorted(Path().glob(pattern))] \
         if any("*" in p for p in args.plans) else [Path(p) for p in args.plans]
@@ -143,7 +181,7 @@ def run_simulation(args) -> None:
                         simulate.metric_delta(result, cfg),
                         simulate.people_impact(result),
                         simulate.function_impact(result, tagged),
-                        simulate.constraint_check(result, cfg),
+                        simulate.constraint_check(result, cfg, guide),
                         simulate.changed_org_profile(result, cfg),
                         simulate.cross_region_merges(result)))
         plans.append(plan)
@@ -151,8 +189,8 @@ def run_simulation(args) -> None:
     if not plans:
         sys.exit("적용 가능한 시나리오가 없습니다.")
 
-    comparison = simulate.compare_plans(snap, plans, cfg)
-    path = report.simulation_report(results, comparison, cfg.out_dir)
+    comparison = simulate.compare_plans(snap, plans, cfg, guide)
+    path = report.simulation_report(results, comparison, cfg.out_dir, guide.to_frame())
     comparison.to_csv(cfg.out_dir / "tables" / "scenario_comparison.csv",
                       index=False, encoding="utf-8-sig")
 

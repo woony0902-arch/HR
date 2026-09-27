@@ -96,6 +96,19 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
     add(f"분석 대상: {ctx['years'][0]}~{ctx['years'][-1]}년 구성원 명단 {len(ctx['years'])}개 스냅샷 "
         f"+ {ctx['base_year']}년 팀 역할 정의표\n")
 
+    guide = ctx.get("directives")
+    if guide is not None and len(guide):
+        add("## 전제 — 반영된 지침\n")
+        add("아래 지침은 조직도 어디에도 없지만 모든 결과의 전제입니다. "
+            "**규칙**은 시뮬레이션이 자동 검사하고, **방향**은 해설의 우선순위에, "
+            "**전제**는 배경으로 쓰입니다. `config/directives.yaml` 에서 관리합니다.\n")
+        add(_md(guide[["id", "출처", "구분", "효력", "범위", "내용"]], 30))
+        conflicts = ctx.get("directive_conflicts")
+        if conflicts is not None and len(conflicts):
+            add("\n⚠️ **지침 간 충돌**\n")
+            add(_md(conflicts, 10))
+        add("")
+
     add("## 0. 데이터 품질 점검\n")
     quality = ctx["quality_summary"]
     if len(quality):
@@ -234,6 +247,38 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
             "같은 기능이 서로 다른 이름으로 불리고 있을 가능성이 있습니다.\n")
         add(_md(ctx["name_conflict_이명동의"], 15))
 
+    if "mission_coverage" in ctx:
+        add("\n## 5-B. 상위 미션과 하위 R&R의 정합성\n")
+        add("담당·본부급 R&R 이 확보되어 가능해진 분석입니다. 본부 미션 → 담당 R&R → 팀 R&R 로 "
+            "내려가며 **끊긴 곳**을 찾습니다.\n")
+        add("\n### 담당별 미션 커버율\n")
+        add("담당이 주요 R&R 로 선언한 항목 중, 하위 팀의 미션·주요 R&R 어딘가에 닿는 비율입니다. "
+            "커버율이 낮으면 선언만 있고 맡은 팀이 없는 것입니다.\n")
+        cov = ctx["mission_coverage"]
+        add(_md(cov[cov["커버율(%)"] < 100], 25))
+        add("\n### 담당이 선언했으나 어느 팀도 맡지 않은 항목\n")
+        add(_md(ctx["mission_gaps"], 25))
+        add("\n### 팀은 하지만 담당 R&R 에 없는 업무 — 담당별 비율\n")
+        add("_상위 R&R 은 추상적으로 쓰이는 경우가 많아 비율 자체보다 담당 간 편차를 보십시오._\n")
+        add(_md(ctx["orphan_summary"], 20))
+
+    if "rr_trajectory" in ctx:
+        add("\n### 팀 R&R 3개년 궤적\n")
+        traj = ctx["rr_trajectory"]
+        add("연도 간 같은 이름의 팀이 얼마나 되는지, 그리고 이름이 유지된 팀의 역할이 얼마나 바뀌었는지입니다.\n")
+        add(_md(traj[traj["팀"] == "(집계)"][["구간", "상위조직(전)", "상위조직(후)"]]
+                .rename(columns={"상위조직(전)": "이름 유지", "상위조직(후)": "신규 / 소멸"}), 5))
+        moved = traj[(traj["팀"] != "(집계)")].copy()
+        moved["R&R유사도"] = pd.to_numeric(moved["R&R유사도"], errors="coerce")
+        changed = moved[moved["R&R유사도"] < 0.3].sort_values("R&R유사도")
+        add(f"\n이름은 같은데 역할이 크게 바뀐 팀 (유사도 0.3 미만): {len(changed)} / {len(moved)}\n")
+        add(_md(changed, 15))
+
+    if "leader_turnover" in ctx:
+        add("\n### 조직장 교체\n")
+        add("이름이 유지된 조직 중 조직장(사번)이 바뀐 비율입니다. 개인은 식별하지 않습니다.\n")
+        add(_md(ctx["leader_turnover"], 5))
+
     add("\n## 6. 기능 중복 진단\n")
     add("### 전사 기능 지도\n")
     add("한 기능을 몇 개 팀이 나눠 맡고 있는지, 총 몇 명이 투입되어 있는지입니다.\n")
@@ -286,11 +331,18 @@ def diagnosis_report(ctx: dict, out_dir: Path) -> Path:
     return path
 
 
-def simulation_report(results: list, comparison: pd.DataFrame, out_dir: Path) -> Path:
+def simulation_report(results: list, comparison: pd.DataFrame, out_dir: Path,
+                      directives: pd.DataFrame | None = None) -> Path:
     """시나리오 시뮬레이션 리포트."""
     lines: list[str] = []
     add = lines.append
     add("# 조직 개편 시뮬레이션 리포트\n")
+    if directives is not None and len(directives):
+        rules = directives[directives["구분"] == "규칙"]
+        add("**검사에 반영된 규칙** (지침 원장):\n")
+        for row in rules.itertuples():
+            add(f"- `{row.id}` [{row.출처}·{row.효력}] {row.내용}")
+        add("")
 
     add("## 시나리오 비교\n")
     add(_md(comparison, 30))

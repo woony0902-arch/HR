@@ -326,21 +326,33 @@ def _resolved_duplicates(scoped: pd.DataFrame, carried: pd.DataFrame,
     return sorted(resolved)
 
 
-def _violations_of(snap: pd.DataFrame, cfg: Config) -> pd.DataFrame:
-    small = cfg.param("small_team_threshold", 4)
-    span_max = cfg.param("span_max", 12)
+def _effective_params(cfg: Config, directives=None) -> dict[str, tuple[Any, str]]:
+    """config 기본값 위에 지침의 규칙을 덮는다. 값과 함께 출처(지침 id 또는 'config')를 돌려준다."""
+    params = {"small_team_threshold": (cfg.param("small_team_threshold", 4), "config"),
+              "span_max": (cfg.param("span_max", 12), "config")}
+    if directives is not None:
+        for key, (value, source) in directives.param_overrides().items():
+            if key in params:
+                params[key] = (value, source)
+    return params
+
+
+def _violations_of(snap: pd.DataFrame, cfg: Config, directives=None) -> pd.DataFrame:
+    params = _effective_params(cfg, directives)
+    small, small_src = params["small_team_threshold"]
+    span_max, span_src = params["span_max"]
     active = snap[snap["team_code"] != "UNASSIGNED"]
     rows = []
 
     for (code, name), n in active.groupby(["team_code", "team_name"]).size().items():
         if n < small:
             rows.append({"유형": "최소 인원 미달", "대상": f"{name}({code})",
-                         "내용": f"{n}명 (기준 {small}명)", "key": f"size:{code}"})
+                         "내용": f"{n}명 (기준 {small}명 · {small_src})", "key": f"size:{code}"})
 
     for row in structure.span_table(active, cfg).itertuples():
         if row.reports > span_max:
             rows.append({"유형": "span 초과", "대상": f"{row.org_name}({row.org_code})",
-                         "내용": f"{row.reports}명 (기준 {span_max}명)", "key": f"span:{row.org_code}"})
+                         "내용": f"{row.reports}명 (기준 {span_max}명 · {span_src})", "key": f"span:{row.org_code}"})
 
     leaders = active.groupby(["team_code", "team_name"])["position_role"].apply(
         lambda s: int((s == ROLE_TEAM).sum()))
@@ -432,10 +444,23 @@ def cross_region_merges(result: Result, regions_path: str = "config/regions.yaml
             if rows else pd.DataFrame())
 
 
-def constraint_check(result: Result, cfg: Config) -> pd.DataFrame:
-    """개편안의 규정·기준 위반. 개편으로 새로 생긴 것과 기존 문제를 구분한다."""
-    before = set(_violations_of(result.before, cfg)["key"])
-    after = _violations_of(result.after, cfg)
+def constraint_check(result: Result, cfg: Config, directives=None) -> pd.DataFrame:
+    """개편안의 규정·기준 위반. 개편으로 새로 생긴 것과 기존 문제를 구분한다.
+
+    지침 원장에 규칙이 있으면 config 기본값 대신 그 값으로 검사하고, 위반에 출처를 남긴다.
+    보호 조직(통합·폐지 금지)을 건드린 액션도 여기서 잡는다.
+    """
+    before = set(_violations_of(result.before, cfg, directives)["key"])
+    after = _violations_of(result.after, cfg, directives)
+
+    if directives is not None:
+        from .directives import check_plan_against
+        touched = check_plan_against(directives, result.plan.actions, result.before)
+        for row in touched.itertuples():
+            after = pd.concat([after, pd.DataFrame([{
+                "유형": "보호 조직 침해", "대상": row.대상,
+                "내용": f"{row.보호조직} — {row.내용} ({row.지침})",
+                "key": f"protect:{row.대상}"}])], ignore_index=True)
     if after.empty:
         return after.drop(columns="key")
 
@@ -445,12 +470,12 @@ def constraint_check(result: Result, cfg: Config) -> pd.DataFrame:
             .reset_index(drop=True))
 
 
-def new_violation_count(result: Result, cfg: Config) -> int:
-    table = constraint_check(result, cfg)
+def new_violation_count(result: Result, cfg: Config, directives=None) -> int:
+    table = constraint_check(result, cfg, directives)
     return 0 if table.empty else int((table["발생"] == "신규").sum())
 
 
-def compare_plans(snap: pd.DataFrame, plans: list[Plan], cfg: Config) -> pd.DataFrame:
+def compare_plans(snap: pd.DataFrame, plans: list[Plan], cfg: Config, directives=None) -> pd.DataFrame:
     """여러 시나리오를 한 표로 비교."""
     base = structure.headline(snap, cfg)
     rows = [{"시나리오": "현행(AS-IS)", **{k: base[k] for k in
@@ -468,7 +493,7 @@ def compare_plans(snap: pd.DataFrame, plans: list[Plan], cfg: Config) -> pd.Data
                                      "avg_team_size", "median_span", "small_teams"]},
             "소속변경": impact["소속 변경 인원"],
             "보임해제": impact["보임 해제 인원"],
-            "신규위반": new_violation_count(result, cfg),
+            "신규위반": new_violation_count(result, cfg, directives),
         })
 
     out = pd.DataFrame(rows)
