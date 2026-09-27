@@ -1,0 +1,291 @@
+<title>조직 시뮬레이션 화면</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#EEF2F6;--surface:#FFFFFF;--surface-2:#F5F7FA;--ink:#0F1B2D;--muted:#586577;--faint:#8C97A6;--line:#DCE2EA;--line-strong:#B9C3D0;
+  --accent:#2A4FB8;--accent-ink:#FFFFFF;--accent-soft:#E6ECFA;
+  --band:#12224A;--band-2:#182C5E;--band-ink:#FFFFFF;--band-muted:#A9B8DC;--band-line:rgba(255,255,255,.14);--band-chip:rgba(255,255,255,.10);
+  --warn:#8A5A00;--warn-soft:#FFF1D6;--crit:#B3352F;--crit-soft:#FBE5E3;--good:#1F6B3F;--good-soft:#E1F1E7;--move:#2A4FB8;--move-soft:#E6ECFA;
+  --shadow:0 1px 2px rgba(15,27,45,.05),0 6px 16px rgba(15,27,45,.06);--ring:0 0 0 3px var(--accent-soft);
+  --sans:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --paper:#0E141C;--surface:#161D27;--surface-2:#1C2430;--ink:#E7ECF2;--muted:#9AA6B5;--faint:#6F7B8A;--line:#273140;--line-strong:#3A4656;
+  --accent:#8AA8F5;--accent-ink:#0B1330;--accent-soft:#1E2A4A;--band:#0B1326;--band-2:#101B36;--band-ink:#F2F5FA;--band-muted:#8A9BC4;--band-line:rgba(255,255,255,.12);--band-chip:rgba(255,255,255,.08);
+  --warn:#E6B65A;--warn-soft:#3A2D0F;--crit:#EF8681;--crit-soft:#3E1D1C;--good:#7ECB9B;--good-soft:#16321F;--move:#8AA8F5;--move-soft:#1E2A4A;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --paper:#0E141C;--surface:#161D27;--surface-2:#1C2430;--ink:#E7ECF2;--muted:#9AA6B5;--faint:#6F7B8A;--line:#273140;--line-strong:#3A4656;
+  --accent:#8AA8F5;--accent-ink:#0B1330;--accent-soft:#1E2A4A;--band:#0B1326;--band-2:#101B36;--band-ink:#F2F5FA;--band-muted:#8A9BC4;--band-line:rgba(255,255,255,.12);--band-chip:rgba(255,255,255,.08);
+  --warn:#E6B65A;--warn-soft:#3A2D0F;--crit:#EF8681;--crit-soft:#3E1D1C;--good:#7ECB9B;--good-soft:#16321F;--move:#8AA8F5;--move-soft:#1E2A4A;--shadow:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}
+html,body{height:100%}*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;display:flex;flex-direction:column;padding-inline:16px;padding-block:0;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.band{background:linear-gradient(90deg,var(--band),var(--band-2));color:var(--band-ink);margin-inline:-16px;padding-inline:16px;padding-top:env(safe-area-inset-top,0px)}
+.top{display:flex;align-items:center;gap:18px;flex-wrap:wrap;min-height:56px;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:var(--band-chip);display:grid;place-items:center;border:1px solid var(--band-line)}
+.brand .mark svg{width:18px;height:18px;stroke:var(--band-ink);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.brand b{font-size:15px;font-weight:600}.brand small{display:block;font-size:11px;color:var(--band-muted);letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono);line-height:1.2}
+.tabs{display:flex;gap:2px;background:var(--band-chip);border:1px solid var(--band-line);border-radius:10px;padding:3px}
+.tabs a{padding:5px 12px;border-radius:7px;font-size:13px;color:var(--band-muted);text-decoration:none;font-weight:500}
+.tabs a[aria-current="page"]{background:var(--band-ink);color:var(--band)}
+.top .meta{display:flex;gap:16px;font-size:12.5px;color:var(--band-muted)}.top .meta b{color:var(--band-ink);font-weight:600;font-family:var(--mono);font-size:13px}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--muted);white-space:nowrap}
+.pill.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}.pill.crit{background:var(--crit-soft);color:var(--crit);border-color:transparent}.pill.good{background:var(--good-soft);color:var(--good);border-color:transparent}.pill.accent{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.pill.band{background:var(--band-chip);color:var(--band-ink);border-color:var(--band-line)}
+
+/* 도구 막대 */
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:10px 8px;border-bottom:1px solid var(--line)}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:6px 13px;border-radius:7px;font-size:13px;color:var(--muted);cursor:pointer;font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.lbl{font-size:12px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;font-family:var(--mono)}
+.grp{display:flex;align-items:center;gap:8px}
+.name{padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);width:150px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:13px;font-weight:500}
+.btn:hover{border-color:var(--line-strong);background:var(--surface-2)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.btn.sm{padding:3px 9px;font-size:12px}.btn:disabled{opacity:.45;cursor:default}
+.basis{font-size:12.5px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-block:6px;border-bottom:1px solid var(--line)}
+.basis summary{cursor:pointer;list-style:none;display:inline-flex;gap:10px;align-items:center;color:var(--ink);font-weight:500}
+.basis summary::-webkit-details-marker{display:none}
+.basis summary::before{content:"▸";color:var(--accent);font-size:12px}
+.basis[open] summary::before{content:"▾"}
+.basis .body{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 24px;padding:8px 0 4px 18px;font-size:12.5px}
+.basis .body b{color:var(--ink);font-weight:600}
+
+/* 본문 */
+.main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;padding-block:12px}
+.main.side{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 400px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.ph{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);font-weight:600;font-size:13.5px}
+.ph .sub{font-weight:400;color:var(--muted);font-size:12.5px}
+.ph .legend{margin-left:auto;display:flex;gap:8px;font-size:11.5px;color:var(--muted);font-weight:400;white-space:nowrap;flex:none}
+.ph .sub{flex:1;min-width:0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:2px solid}
+.legend .n i{border-color:var(--good)}.legend .x i{border-color:var(--faint);background:var(--line)}.legend .m i{border-color:var(--move)}
+.tree{flex:1;min-height:0;overflow:auto;padding:10px 12px}
+.node{margin:2px 0}
+.row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;border:1.5px solid transparent;position:relative;min-height:34px}
+.row .tw{width:18px;height:18px;border:0;background:transparent;cursor:pointer;color:var(--faint);padding:0;display:grid;place-items:center;flex:none;font-size:11px}
+.row .tw.leaf{visibility:hidden}
+.row .nm{font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .lv{font-size:10.5px;color:var(--faint);font-family:var(--mono);letter-spacing:.04em;flex:none}
+.row .st{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none;margin-left:auto;white-space:nowrap}
+.row.hq{background:var(--surface-2);font-size:14px}.row.hq .nm{font-weight:600}
+.row.dept{margin-left:22px}.row.team{margin-left:44px;font-size:13.5px}
+.row[draggable="true"]{cursor:grab}.row[draggable="true"]:hover{background:var(--accent-soft)}
+.row.dim{opacity:.45}
+.row.drop{border-color:var(--accent);background:var(--accent-soft)}
+.row.sel{border-color:var(--accent);box-shadow:var(--ring)}
+.row.new{border-color:var(--good)}.row.moved{border-color:var(--move)}.row.gone{opacity:.5;text-decoration:line-through;border-style:dashed;border-color:var(--line-strong)}
+.row .mk{font-size:10.5px;padding:1px 6px;border-radius:5px;font-weight:600;flex:none}
+.row.new .mk{background:var(--good-soft);color:var(--good)}.row.moved .mk{background:var(--move-soft);color:var(--move)}.row.gone .mk{background:var(--line);color:var(--muted)}
+.row .act{display:none;gap:4px;position:absolute;right:8px;top:4px}
+.row:hover .act{display:flex}
+.row:hover .st{visibility:hidden}
+.src{font-size:11.5px;color:var(--muted);margin-top:-2px;margin-left:74px}.src.dept{margin-left:52px}.src.hq{margin-left:30px}
+.kids{display:none}.open>.kids{display:block}
+.empty{color:var(--muted);font-size:13px;padding:8px}
+
+/* 선택창 */
+.pop{position:fixed;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px;width:280px;font-size:13px}
+.pop h4{margin:0 0 8px;font-size:13px;font-weight:600}
+.pop .opt{display:flex;flex-direction:column;gap:6px}
+.pop input{padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);width:100%}
+.pop .x{position:absolute;right:8px;top:6px;border:0;background:transparent;cursor:pointer;color:var(--faint)}
+
+/* 결과 */
+.res{flex:1;min-height:0;overflow:auto;padding:14px}
+.hero{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.hero .t{flex:1;min-width:110px;background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.hero .l{font-size:11.5px;color:var(--muted);font-weight:500}.hero .v{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.15;margin-top:2px}.hero .v small{font-size:13px;color:var(--muted);font-weight:500;margin-left:2px}
+.hero .d{font-size:12px;color:var(--muted);margin-top:2px}
+h3{font-size:13px;font-weight:600;margin:14px 0 6px;color:var(--ink)}
+.kv{display:grid;grid-template-columns:1fr auto auto auto;gap:0 12px;font-size:13px;font-variant-numeric:tabular-nums}
+.kv>span{padding:5px 0;border-bottom:1px solid var(--line)}.kv .h{color:var(--muted);font-size:11.5px;font-weight:500}.kv .d{font-weight:600;color:var(--accent)}
+.warns{display:flex;flex-direction:column;gap:6px}
+.w{font-size:12.5px;padding:7px 10px 7px 12px;border-radius:8px;background:var(--warn-soft);color:var(--warn);border-left:3px solid currentColor;line-height:1.45}
+.w.crit{background:var(--crit-soft);color:var(--crit)}.w.info{background:var(--accent-soft);color:var(--accent)}
+.acts{display:flex;flex-direction:column;gap:5px}
+.acts .a{display:flex;gap:8px;align-items:center;font-size:12.5px;padding:6px 9px;border:1px solid var(--line);border-radius:8px}
+.acts .a .op{font-family:var(--mono);font-size:11px;color:var(--accent);background:var(--accent-soft);padding:1px 6px;border-radius:4px;flex:none}
+.acts .a .t{flex:1;min-width:0}
+.chat{border-top:1px solid var(--line);background:var(--surface-2)}
+.chat summary{cursor:pointer;padding:9px 14px;font-size:13px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
+.chat summary::-webkit-details-marker{display:none}
+.chat .cb{padding:0 14px 12px;font-size:12.5px;color:var(--muted)}
+.chat .cb .q{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+.whole{padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-content:start;overflow:auto}
+.whole .t{background:var(--surface-2);border-radius:10px;padding:10px 12px}.whole .l{font-size:11.5px;color:var(--muted);font-weight:500}.whole .v{font-size:24px;font-weight:600;letter-spacing:-.02em;margin-top:2px}.whole .v small{font-size:12px;color:var(--muted);font-weight:500;margin-left:3px}
+.whole .d{font-size:12px;color:var(--muted)}
+.foot{font-size:11.5px;color:var(--faint);padding-block:6px 10px;border-top:1px solid var(--line);display:flex;gap:16px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);padding:6px 12px 2px}
+@media (max-width:1000px){.main,.main.side{grid-template-columns:1fr;grid-template-rows:auto}.panel{min-height:320px}.top .meta{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="band"><header class="top">
+  <a class="brand" href="#"><span class="mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M12 7.2v4.3M12 11.5 6.2 17M12 11.5l5.8 5.5"/></svg></span><span><b>조직 시뮬레이터</b><small>Org Structure Studio</small></span></a>
+  <nav class="tabs" aria-label="페이지"><a href="https://claude.ai/artifact/DjCCtJyf51BniBbhCHX7Bs" target="_blank" rel="noopener">대시보드</a><a href="#" aria-current="page">시뮬레이션</a><a href="https://claude.ai/artifact/HQ3KzvEESS1LVXqyefTGmV" target="_blank" rel="noopener">에이전트</a></nav>
+  <div class="meta"><span><b>2026년 1월</b> 기준</span><span>본부 <b id="mHq">4</b></span><span>팀 <b id="mTeam">76</b></span></div>
+  <span class="spacer"></span>
+  <span class="pill band">와이어프레임 · 본부 4개 표본</span>
+</header></div>
+
+<div class="bar">
+  <div class="grp"><span class="lbl">단계</span><div class="seg" id="level"><button data-l="team" aria-pressed="true">팀</button><button data-l="dept">담당Ⅰ</button><button data-l="hq">담당Ⅱ · 본부</button><button data-l="all">조직 전체</button></div></div>
+  <div class="grp"><span class="lbl">개편안</span><input class="name" id="planName" value="검토안 A"><button class="btn sm" title="와이어프레임 — 저장은 실제 화면에서">저장</button><button class="btn sm" title="와이어프레임">불러오기 ▾</button></div>
+  <div class="grp"><span class="lbl">보기</span><div class="seg" id="view"><button data-v="overlay" aria-pressed="true">변화 겹쳐 보기</button><button data-v="side">현재 · 개편 후 나란히</button></div></div>
+  <span class="spacer"></span>
+  <button class="btn sm" id="undo" disabled>되돌리기</button><button class="btn sm" id="reset">비우기</button>
+</div>
+<details class="basis"><summary>기준 <span class="pill">최소 인원 5 · GRP-01</span><span class="pill">관리 폭 15 · GRP-02</span><span class="pill">보호 조직 3 · REG-01</span><span class="pill accent">가정 없음</span><span class="pill warn">현업 의견 2</span></summary>
+  <div class="body"><div><b>지침 (규칙 3 · 방향 2)</b><br>GRP-01 팀은 5인 이상 · GRP-02 조직장 직접 관리 15명 이하(권고) · REG-01 정보보호실·안전보건실·감사실 보호 · CEO-01 미디어 성장 우선 · HR-01 정년 대응</div><div><b>이번 대화의 가정</b><br>없음 — 대화창이나 여기서 "팀 최소 6명으로" 같은 조건을 넣으면 이 줄에 표시</div><div><b>현업 의견 (개편 대상 조직)</b><br><span class="pill crit">반대</span> 유선사업본부 — 국사가 달라 한 팀장이 안전점검을 못 돈다 (본부장·회의)<br><span class="pill warn">조건부</span> 케이블방송사업담당 — 지역 팀장 유지 조건 (담당·메일)</div></div>
+</details>
+
+<div class="main" id="main">
+  <section class="panel" id="curPanel" hidden><div class="ph">현재 조직 <span class="sub">2026년 1월</span></div><div class="tree" id="curTree"></div></section>
+  <section class="panel"><div class="ph"><span id="treeTitle">조직 · 변화 겹쳐 보기</span><span class="sub" id="treeHint">팀을 끌어 다른 팀에 놓으면 통합·흡수, 담당에 놓으면 이관</span><span class="legend"><span class="n"><i></i>신설</span><span class="m"><i></i>이동</span><span class="x"><i></i>폐지</span></span></div><div class="tree" id="tree"></div></section>
+  <aside class="panel">
+    <div class="ph">결과 <span class="sub" id="resSub">액션 0</span></div>
+    <div class="res" id="res"></div>
+    <details class="chat"><summary>에이전트 해설 <span class="pill">접힘</span></summary><div class="cb">실제 화면에서는 여기서 해설과 '이 안이 받을 질문'을 요청합니다. 결과와 기준·의견이 그대로 넘어갑니다.<div class="q"><span class="chip">이 안을 해설하고 받을 질문 붙여줘</span><span class="chip">왜 보임 해제가 그 숫자야?</span><span class="chip">정년 대응이 목적이면 맞는 안이야?</span></div></div></details>
+  </aside>
+</div>
+<footer class="foot"><span>와이어프레임 — 본부 4개 표본, 팀 단위 집계, 계산은 예시 규칙(최소 5명·관리 폭 15)</span><span>끌어 놓기가 안 되는 기기에서는 클릭으로 선택 후 대상 클릭</span></footer>
+
+<script>
+(() => {
+"use strict";
+const BASE = [{"name":"미디어사업본부","leader":1,"depts":[{"name":"Btv서비스기획담당","leader":1,"teams":[{"n":"Btv AI Agent기획팀","h":7,"l":1,"r":"","a":37.4,"p":0},{"n":"Btv AX팀","h":8,"l":1,"r":"","a":35.5,"p":0},{"n":"Btv서비스기획팀","h":10,"l":1,"r":"","a":40.2,"p":0},{"n":"모바일서비스기획팀","h":7,"l":1,"r":"","a":37.1,"p":0}]},{"name":"플랫폼담당","leader":1,"teams":[{"n":"Btv큐레이션팀","h":16,"l":1,"r":"","a":38.4,"p":1},{"n":"Btv플러스팀","h":11,"l":1,"r":"","a":37.4,"p":0},{"n":"PPC사업팀","h":14,"l":1,"r":"","a":39.6,"p":0},{"n":"월정액리텐션팀","h":8,"l":1,"r":"","a":33.8,"p":0}]},{"name":"IPTV 3.0 BM TF","leader":0,"teams":[{"n":"IPTV 3.0 BM TF","h":1,"l":1,"r":"","a":43.0,"p":0}]},{"name":"콘텐츠전략담당","leader":1,"teams":[{"n":"VoD사업팀","h":11,"l":1,"r":"","a":48.0,"p":1},{"n":"미디어신규기획팀","h":8,"l":1,"r":"","a":40.6,"p":1},{"n":"미디어전략팀","h":10,"l":1,"r":"","a":43.3,"p":1},{"n":"채널사업팀","h":10,"l":1,"r":"","a":47.3,"p":2}]},{"name":"케이블방송사업담당","leader":1,"teams":[{"n":"경기보도국","h":21,"l":0,"r":"경기","a":46.6,"p":3},{"n":"대구보도국","h":8,"l":0,"r":"대구","a":47.0,"p":1},{"n":"방송사업기획팀","h":16,"l":1,"r":"","a":47.8,"p":3},{"n":"부산보도국","h":11,"l":0,"r":"부산","a":49.5,"p":2},{"n":"서울디지털보도국","h":20,"l":0,"r":"서울","a":43.0,"p":0},{"n":"영상기술국","h":19,"l":0,"r":"","a":49.3,"p":2},{"n":"인천보도국","h":10,"l":0,"r":"인천","a":47.6,"p":1},{"n":"전주보도국","h":7,"l":0,"r":"전주","a":48.3,"p":1},{"n":"중부보도국","h":8,"l":0,"r":"중부","a":47.5,"p":1},{"n":"편성심의기획팀","h":11,"l":1,"r":"","a":46.5,"p":2}]},{"name":"커머스광고담당","leader":1,"teams":[{"n":"광고기술팀","h":4,"l":1,"r":"","a":48.8,"p":0},{"n":"광고영업팀","h":17,"l":1,"r":"","a":45.9,"p":2},{"n":"커머스사업팀","h":8,"l":1,"r":"","a":39.0,"p":0},{"n":"홈쇼핑사업팀","h":9,"l":1,"r":"","a":41.8,"p":0}]}]},{"name":"Enterprise사업본부","leader":1,"depts":[{"name":"Enterprise사업담당","leader":1,"teams":[{"n":"Cloud PC개발팀","h":17,"l":1,"r":"","a":40.4,"p":0},{"n":"Cloud PC사업팀","h":12,"l":1,"r":"","a":47.2,"p":3},{"n":"Enterprise사업기획팀","h":8,"l":1,"r":"","a":45.2,"p":0},{"n":"Solution사업팀","h":12,"l":1,"r":"","a":48.9,"p":2},{"n":"Voice사업팀","h":10,"l":1,"r":"","a":47.2,"p":1},{"n":"전용회선사업팀","h":9,"l":1,"r":"","a":43.6,"p":2},{"n":"채널기획팀","h":11,"l":1,"r":"","a":45.5,"p":0}]},{"name":"Enterprise사업본부(파견)","leader":0,"teams":[{"n":"Enterprise사업본부(파견)","h":2,"l":0,"r":"","a":52.0,"p":0}]},{"name":"Enterprise컨설팅담당","leader":1,"teams":[{"n":"공공컨설팅팀","h":10,"l":1,"r":"","a":44.7,"p":1},{"n":"금융컨설팅팀","h":11,"l":1,"r":"","a":48.5,"p":1},{"n":"기업컨설팅팀","h":10,"l":1,"r":"","a":41.3,"p":1},{"n":"프로젝트수행팀","h":14,"l":1,"r":"","a":53.2,"p":7},{"n":"프로젝트지원팀","h":12,"l":1,"r":"","a":47.2,"p":0}]},{"name":"금융/LE고객담당","leader":1,"teams":[{"n":"LE고객1팀","h":11,"l":1,"r":"","a":52.5,"p":1},{"n":"LE고객2팀","h":10,"l":1,"r":"","a":51.8,"p":3},{"n":"금융고객1팀","h":11,"l":1,"r":"","a":49.4,"p":3},{"n":"금융고객2팀","h":9,"l":1,"r":"","a":52.9,"p":3},{"n":"금융고객3팀","h":8,"l":1,"r":"","a":48.5,"p":1}]},{"name":"공공고객담당","leader":1,"teams":[{"n":"공공고객팀","h":22,"l":1,"r":"","a":53.3,"p":9},{"n":"동부기업고객1팀","h":8,"l":1,"r":"동부","a":50.6,"p":0},{"n":"동부기업고객2팀","h":10,"l":1,"r":"동부","a":54.0,"p":5},{"n":"서부기업고객팀","h":11,"l":1,"r":"서부","a":53.6,"p":5},{"n":"중부기업고객팀","h":11,"l":1,"r":"중부","a":51.2,"p":4}]},{"name":"기업고객담당","leader":1,"teams":[{"n":"기업고객1팀","h":19,"l":1,"r":"","a":53.7,"p":6},{"n":"기업고객2팀","h":22,"l":1,"r":"","a":52.9,"p":7},{"n":"기업고객3팀","h":16,"l":1,"r":"","a":47.8,"p":4},{"n":"기업고객4팀","h":10,"l":1,"r":"","a":52.6,"p":4}]}]},{"name":"AT/DT센터","leader":0,"depts":[{"name":"AT/DT개발담당","leader":1,"teams":[{"n":"AT Data팀","h":16,"l":1,"r":"","a":42.6,"p":2},{"n":"AT Infra팀","h":10,"l":1,"r":"","a":48.0,"p":2},{"n":"AT Platform팀","h":18,"l":1,"r":"","a":48.3,"p":2},{"n":"AT R&D팀","h":11,"l":1,"r":"","a":35.0,"p":0},{"n":"AT서비스개발팀","h":10,"l":1,"r":"","a":43.4,"p":1}]},{"name":"Next BSS TF","leader":0,"teams":[{"n":"Next BSS TF","h":2,"l":1,"r":"","a":42.0,"p":0}]}]},{"name":"Corporate센터","leader":1,"depts":[{"name":"법무실","leader":1,"teams":[{"n":"Biz법무팀","h":9,"l":1,"r":"","a":43.0,"p":1},{"n":"Privacy&Compliance팀","h":7,"l":1,"r":"","a":39.6,"p":0}]},{"name":"CR실","leader":1,"teams":[{"n":"CR전략팀","h":7,"l":1,"r":"","a":50.6,"p":2},{"n":"경쟁제도팀","h":6,"l":1,"r":"","a":53.7,"p":2},{"n":"미디어정책팀","h":8,"l":1,"r":"","a":47.8,"p":1},{"n":"정책협력팀","h":6,"l":1,"r":"","a":50.7,"p":2}]},{"name":"ESG추진팀","leader":0,"teams":[{"n":"ESG추진팀","h":8,"l":1,"r":"","a":45.1,"p":1}]},{"name":"경영기획실","leader":1,"teams":[{"n":"O/I추진팀","h":6,"l":1,"r":"","a":38.8,"p":0},{"n":"경영기획팀","h":8,"l":1,"r":"","a":36.9,"p":0},{"n":"경영분석팀","h":7,"l":1,"r":"","a":38.9,"p":0},{"n":"구매팀","h":10,"l":1,"r":"","a":50.6,"p":3},{"n":"성장기획팀","h":7,"l":1,"r":"","a":39.0,"p":0}]},{"name":"PR실","leader":1,"teams":[{"n":"PR팀","h":8,"l":1,"r":"","a":44.5,"p":2}]},{"name":"재무관리실","leader":1,"teams":[{"n":"세무팀","h":11,"l":1,"r":"","a":42.1,"p":0},{"n":"재무팀","h":12,"l":1,"r":"","a":44.1,"p":1},{"n":"회계팀","h":13,"l":1,"r":"","a":39.2,"p":0}]}]}];
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const S = { level: "team", view: "overlay", actions: [], open: new Set(), sel: null, pop: null };
+const RULE = { min: 5, span: 15 };
+const PROTECT = new Set(["정보보호실", "안전보건실", "감사실"]);
+
+// ── 기본 트리를 액션으로 변형 ─────────────────────────
+function build() {
+  const hqs = BASE.map((h) => ({ id: "hq:" + h.name, name: h.name, leader: h.leader, mark: "", depts: h.depts.map((d) => ({ id: "dept:" + h.name + "|" + d.name, name: d.name, leader: d.leader, mark: "", from: "", teams: d.teams.map((t) => ({ id: "team:" + t.n, name: t.n, h: t.h, l: t.l, r: t.r, a: t.a, p: t.p, mark: "", from: "", src: [] })) })) }));
+  const gone = [], log = [];
+  let surplus = 0, moved = 0, unassigned = 0;
+  const findTeam = (id) => { for (const h of hqs) for (const d of h.depts) { const i = d.teams.findIndex((t) => t.id === id); if (i >= 0) return { h, d, t: d.teams[i], i }; } return null; };
+  const findDept = (id) => { for (const h of hqs) { const i = h.depts.findIndex((d) => d.id === id); if (i >= 0) return { h, d: h.depts[i], i }; } return null; };
+  const findHq = (id) => { const i = hqs.findIndex((h) => h.id === id); return i >= 0 ? { h: hqs[i], i } : null; };
+  for (const a of S.actions) {
+    if (a.op === "MERGE_TEAM") { const A = findTeam(a.a), B = findTeam(a.b); if (!A || !B) continue;
+      const nt = { id: "team:" + a.name, name: a.name, h: A.t.h + B.t.h, l: Math.min(1, A.t.l + B.t.l), r: [...new Set([A.t.r, B.t.r].filter(Boolean))].join("+"), a: Math.round((A.t.a * A.t.h + B.t.a * B.t.h) / Math.max(A.t.h + B.t.h, 1) * 10) / 10, p: A.t.p + B.t.p, mark: "new", src: [...(A.t.src.length ? A.t.src : [A.t.name]), ...(B.t.src.length ? B.t.src : [B.t.name])] };
+      surplus += Math.max(A.t.l + B.t.l - 1, 0); moved += A.t.h + B.t.h; B.d.teams.splice(B.i, 1, nt); const A2 = findTeam(a.a); A2.d.teams.splice(A2.i, 1); gone.push({ ...A.t, mark: "gone", where: A.d.id }); gone.push({ ...B.t, mark: "gone", where: B.d.id, hide: true });
+      log.push(`통합 ${A.t.name} + ${B.t.name} → ${a.name}`); }
+    else if (a.op === "ABSORB_TEAM") { const A = findTeam(a.a), B = findTeam(a.b); if (!A || !B) continue; B.t.h += A.t.h; B.t.p += A.t.p; B.t.mark = B.t.mark || "new"; B.t.src = [...(B.t.src.length ? B.t.src : [B.t.name]), A.t.name]; surplus += A.t.l; moved += A.t.h; A.d.teams.splice(A.i, 1); gone.push({ ...A.t, mark: "gone", where: A.d.id }); log.push(`흡수 ${A.t.name} → ${B.t.name}`); }
+    else if (a.op === "MOVE_TEAM") { const A = findTeam(a.a), D = findDept(a.b); if (!A || !D) continue; A.d.teams.splice(A.i, 1); D.d.teams.push({ ...A.t, mark: "moved", from: A.d.name }); log.push(`이관 ${A.t.name}: ${A.d.name} → ${D.d.name}`); }
+    else if (a.op === "ABOLISH_TEAM") { const A = findTeam(a.a); if (!A) continue; surplus += A.t.l; moved += A.t.h; unassigned += A.t.h; A.d.teams.splice(A.i, 1); gone.push({ ...A.t, mark: "gone", where: A.d.id }); log.push(`폐지 ${A.t.name} (미배치 ${A.t.h}명)`); }
+    else if (a.op === "MERGE_DEPT") { const A = findDept(a.a), B = findDept(a.b); if (!A || !B) continue;
+      const nd = { id: "dept:" + B.h.name + "|" + a.name, name: a.name, leader: Math.min(1, A.d.leader + B.d.leader), mark: "new", src: [A.d.name, B.d.name], teams: [...B.d.teams, ...A.d.teams.map((t) => ({ ...t, mark: t.mark || "moved", from: A.d.name }))] };
+      surplus += Math.max(A.d.leader + B.d.leader - 1, 0); B.h.depts.splice(B.i, 1, nd); const A2 = findDept(a.a); A2.h.depts.splice(A2.i, 1); gone.push({ ...A.d, teams: [], mark: "gone", where: A.h.id }); log.push(`담당 통합 ${A.d.name} + ${B.d.name} → ${a.name}`); }
+    else if (a.op === "ABSORB_DEPT") { const A = findDept(a.a), B = findDept(a.b); if (!A || !B) continue; B.d.teams.push(...A.d.teams.map((t) => ({ ...t, mark: t.mark || "moved", from: A.d.name }))); B.d.mark = B.d.mark || "new"; B.d.src = [...(B.d.src || [B.d.name]), A.d.name]; surplus += A.d.leader; A.h.depts.splice(A.i, 1); gone.push({ ...A.d, teams: [], mark: "gone", where: A.h.id }); log.push(`담당 흡수 ${A.d.name} → ${B.d.name}`); }
+    else if (a.op === "MOVE_DEPT") { const A = findDept(a.a), H = findHq(a.b); if (!A || !H) continue; A.h.depts.splice(A.i, 1); H.h.depts.push({ ...A.d, mark: "moved", from: A.h.name }); log.push(`담당 이관 ${A.d.name}: ${A.h.name} → ${H.h.name}`); }
+    else if (a.op === "ABOLISH_DEPT") { const A = findDept(a.a); if (!A) continue; surplus += A.d.leader; for (const t of A.d.teams) { surplus += t.l; moved += t.h; unassigned += t.h; } A.h.depts.splice(A.i, 1); gone.push({ ...A.d, mark: "gone", where: A.h.id }); log.push(`담당 폐지 ${A.d.name} (하위 팀 ${A.d.teams.length}개 미배치)`); }
+    else if (a.op === "MERGE_HQ") { const A = findHq(a.a), B = findHq(a.b); if (!A || !B) continue;
+      const nh = { id: "hq:" + a.name, name: a.name, leader: Math.min(1, A.h.leader + B.h.leader), mark: "new", src: [A.h.name, B.h.name], depts: [...B.h.depts, ...A.h.depts.map((d) => ({ ...d, mark: d.mark || "moved", from: A.h.name }))] };
+      surplus += Math.max(A.h.leader + B.h.leader - 1, 0); hqs.splice(B.i, 1, nh); const A2 = findHq(a.a); hqs.splice(A2.i, 1); gone.push({ ...A.h, depts: [], mark: "gone", where: "" }); log.push(`본부 통합 ${A.h.name} + ${B.h.name} → ${a.name}`); }
+  }
+  return { hqs, gone, log, surplus, moved, unassigned };
+}
+function metrics(hqs) {
+  const teams = hqs.flatMap((h) => h.depts.flatMap((d) => d.teams)), depts = hqs.flatMap((h) => h.depts);
+  const spans = teams.map((t) => t.h - t.l);
+  return { "본부 수": hqs.length, "담당 수": depts.length, "팀 수": teams.length, "직책자 수": teams.reduce((a, t) => a + t.l, 0) + depts.reduce((a, d) => a + d.leader, 0) + hqs.reduce((a, h) => a + h.leader, 0),
+    "최대 관리 폭(팀)": Math.max(0, ...spans), "담당당 팀 최대": Math.max(0, ...depts.map((d) => d.teams.length)), "본부당 담당 최대": Math.max(0, ...hqs.map((h) => h.depts.length)), "1팀 담당 수": depts.filter((d) => d.teams.length === 1).length, "소규모 팀 수": teams.filter((t) => t.h < RULE.min).length, "평균 연령": Math.round(teams.reduce((a, t) => a + t.a * t.h, 0) / Math.max(teams.reduce((a, t) => a + t.h, 0), 1) * 10) / 10 };
+}
+
+// ── 그리기 ──────────────────────────────────────────
+const cnt = (h) => h.depts.reduce((a, d) => a + d.teams.reduce((x, t) => x + t.h, 0) + d.leader, 0) + h.leader;
+const dcnt = (d) => d.teams.reduce((x, t) => x + t.h, 0) + d.leader;
+function renderTree(el, r, live) {
+  const L = S.level; let h = "";
+  const goneIn = (where) => r.gone.filter((g) => g.where === where && !g.hide);
+  const rowAttrs = (id, kind) => { const drag = live && ((L === "team" && kind === "team") || (L === "dept" && kind === "dept") || (L === "hq" && kind === "hq")); const drop = live && ((L === "team" && (kind === "team" || kind === "dept")) || (L === "dept" && (kind === "dept" || kind === "hq")) || (L === "hq" && kind === "hq")); return `data-id="${esc(id)}" data-kind="${kind}" ${drag ? 'draggable="true"' : ""} ${drop ? 'data-drop="1"' : ""} class="row ${kind} ${S.sel === id ? "sel" : ""}"`; };
+  const acts = (id, kind) => live && ((L === "team" && kind === "team") || (L === "dept" && kind === "dept")) ? `<span class="act"><button class="btn sm" data-abolish="${esc(id)}">폐지</button></span>` : "";
+  const mk = (n) => n.mark === "new" ? '<span class="mk">신설</span>' : n.mark === "moved" ? `<span class="mk">이동 ← ${esc(n.from)}</span>` : n.mark === "gone" ? '<span class="mk">폐지</span>' : "";
+  for (const hq of r.hqs) { const open = S.open.has(hq.id) || S.level !== "team" || r.hqs.length <= 4;
+    h += `<div class="node ${open ? "open" : ""}"><div ${rowAttrs(hq.id, "hq")}${hq.mark ? " " : ""}${hq.mark === "new" ? ' data-new="1"' : ""}><button class="tw" data-tw="${esc(hq.id)}">${open ? "▾" : "▸"}</button><span class="lv">본부</span><span class="nm">${esc(hq.name)}</span>${mk(hq)}<span class="st">담당 ${hq.depts.length} · ${cnt(hq)}명${hq.leader ? "" : " · 본부장 없음"}</span></div>${hq.src ? `<div class="src hq">← ${esc(hq.src.join(" + "))}</div>` : ""}<div class="kids">`;
+    for (const d of hq.depts) { const dopen = S.open.has(d.id);
+      h += `<div class="node ${dopen ? "open" : ""}"><div ${rowAttrs(d.id, "dept")}><button class="tw ${d.teams.length ? "" : "leaf"}" data-tw="${esc(d.id)}">${dopen ? "▾" : "▸"}</button><span class="lv">담당</span><span class="nm">${esc(d.name)}</span>${mk(d)}<span class="st">팀 ${d.teams.length} · ${dcnt(d)}명${d.leader ? "" : " · 담당장 없음"}</span>${acts(d.id, "dept")}</div>${d.src ? `<div class="src dept">← ${esc(d.src.join(" + "))}</div>` : ""}<div class="kids">`;
+      for (const t of d.teams) h += `<div class="node"><div ${rowAttrs(t.id, "team")}><button class="tw leaf"></button><span class="nm">${esc(t.name)}</span>${mk(t)}${PROTECT.has(t.name) ? '<span class="pill crit">보호</span>' : ""}<span class="st">${t.h}명${t.l ? "" : " · 팀장 없음"}${t.r ? " · " + esc(t.r) : ""}</span>${acts(t.id, "team")}</div>${t.src && t.src.length ? `<div class="src">← ${esc(t.src.join(" + "))}</div>` : ""}</div>`;
+      for (const g of goneIn(d.id)) h += `<div class="node"><div class="row team gone"><button class="tw leaf"></button><span class="nm">${esc(g.name)}</span>${mk(g)}<span class="st">${g.h}명</span></div></div>`;
+      h += `</div></div>`; }
+    for (const g of goneIn(hq.id)) h += `<div class="node"><div class="row dept gone"><button class="tw leaf"></button><span class="lv">담당</span><span class="nm">${esc(g.name)}</span>${mk(g)}</div></div>`;
+    h += `</div></div>`; }
+  for (const g of r.gone.filter((x) => x.where === "" && !x.hide)) h += `<div class="node"><div class="row hq gone"><button class="tw leaf"></button><span class="lv">본부</span><span class="nm">${esc(g.name)}</span>${mk(g)}</div></div>`;
+  el.innerHTML = h || '<div class="empty">없음</div>';
+}
+function renderRes(r, base) {
+  const m0 = metrics(base.hqs), m1 = metrics(r.hqs), keys = Object.keys(m0);
+  const viol = [];
+  for (const h of r.hqs) for (const d of h.depts) { if (d.teams.length === 1 && d.mark) viol.push({ c: 0, t: `1팀 담당 · ${d.name} — 담당 아래 팀이 하나뿐` }); for (const t of d.teams) { if (t.mark && t.h < RULE.min) viol.push({ c: 0, t: `최소 인원 미달 · ${t.name} — ${t.h}명 (기준 ${RULE.min} · GRP-01)` }); if (t.mark && t.h - t.l > RULE.span) viol.push({ c: 0, t: `관리 폭 초과 · ${t.name} — ${t.h - t.l}명 (기준 ${RULE.span} · GRP-02)` }); if (t.mark && String(t.r).includes("+")) viol.push({ c: 0, t: `지역 간 통합 · ${t.name} (${t.r}) — 사람은 원래 자리에 남습니다` }); if (t.src && t.src.some((s) => PROTECT.has(s))) viol.push({ c: 1, t: `보호 조직 침해 · ${t.name} (REG-01)` }); } }
+  if (r.unassigned) viol.push({ c: 1, t: `미배치 ${r.unassigned}명 — 흡수처를 정하세요` });
+  const hero = S.level === "all" ? "" : `<div class="hero"><div class="t"><div class="l">보임 해제</div><div class="v">${r.surplus}<small>명</small></div><div class="d">팀장·담당장·본부장</div></div><div class="t"><div class="l">소속 변경</div><div class="v">${r.moved}<small>명</small></div><div class="d">통합·폐지 대상 인원</div></div><div class="t"><div class="l">신규 위반</div><div class="v">${viol.length}<small>건</small></div><div class="d">기준·지침 기준</div></div></div>`;
+  let kv = `<h3>현재 → 개편 후</h3><div class="kv"><span class="h">지표</span><span class="h">현재</span><span class="h">개편 후</span><span class="h">증감</span>`;
+  for (const k of keys) { const d = Math.round((m1[k] - m0[k]) * 10) / 10; kv += `<span>${esc(k)}</span><span>${m0[k]}</span><span>${m1[k]}</span><span class="d">${d > 0 ? "+" : ""}${d || "0"}</span>`; } kv += `</div>`;
+  const w = viol.length ? `<h3>경고</h3><div class="warns">${viol.map((v) => `<div class="w ${v.c ? "crit" : ""}">${esc(v.t)}</div>`).join("")}</div>` : "";
+  const acts = `<h3>액션 ${r.log.length}</h3><div class="acts">${r.log.map((l, i) => `<div class="a"><span class="op">${i + 1}</span><span class="t">${esc(l)}</span></div>`).join("") || '<div class="empty">아직 없습니다. 왼쪽에서 끌어 놓으세요.</div>'}</div>`;
+  const op = r.log.length ? `<h3>현업 의견</h3><div class="warns"><div class="w info">케이블방송사업담당 <b>조건부</b> — 지역 팀장 유지 조건 (담당 · 메일)</div></div>` : "";
+  $("#res").innerHTML = hero + kv + w + op + acts; $("#resSub").textContent = `액션 ${r.log.length}`;
+}
+function renderWhole(r, base) {
+  const m0 = metrics(base.hqs), m1 = metrics(r.hqs);
+  const rows = [["본부 수", "본부 수", ""], ["담당 수", "담당 수", ""], ["팀 수", "팀 수", ""], ["직책자 수", "직책자 수", ""], ["최대 관리 폭(팀)", "팀장 1인 최대", "명"], ["담당당 팀 최대", "담당장 1인 최대", "팀"], ["본부당 담당 최대", "본부장 1인 최대", "담당"], ["1팀 담당 수", "1팀 담당", ""], ["소규모 팀 수", "소규모 팀", ""], ["평균 연령", "평균 연령", "세"]];
+  $("#tree").innerHTML = `<div class="hint">조직 전체 단계 — 계층별 구조 지표. 개편 후 값과 현재 대비 증감. 3번·5번 질문(계층별 관리 폭 기준, 첫 숫자)의 답에 따라 첫 타일이 정해집니다.</div><div class="whole">${rows.map(([k, l, u]) => { const d = Math.round((m1[k] - m0[k]) * 10) / 10; return `<div class="t"><div class="l">${esc(l)}</div><div class="v">${m1[k]}<small>${u}</small></div><div class="d">${d ? (d > 0 ? "+" : "") + d + " vs 현재" : "변화 없음"}</div></div>`; }).join("")}</div>`;
+}
+function render() {
+  const base = { hqs: build.call({ actions: [] }) };
+  const saved = S.actions; S.actions = []; const b = build(); S.actions = saved; const r = build();
+  const side = S.view === "side" && S.level !== "all"; $("#main").classList.toggle("side", side); $("#curPanel").hidden = !side;
+  const hints = { team: "팀을 끌어 다른 팀에 놓으면 통합·흡수, 담당에 놓으면 이관 · 폐지는 마우스를 올려", dept: "담당을 끌어 다른 담당에 놓으면 통합·흡수, 본부에 놓으면 이관", hq: "본부를 끌어 다른 본부에 놓으면 통합", all: "" };
+  $("#treeHint").textContent = hints[S.level]; $("#treeTitle").textContent = S.level === "all" ? "조직 전체" : side ? "개편 후" : "조직 · 변화 겹쳐 보기";
+  if (S.level === "all") renderWhole(r, b); else renderTree($("#tree"), r, true);
+  if (side) renderTree($("#curTree"), { hqs: b.hqs, gone: [] }, false);
+  renderRes(r, b); $("#undo").disabled = !S.actions.length; $("#mHq").textContent = r.hqs.length; $("#mTeam").textContent = metrics(r.hqs)["팀 수"];
+  bind();
+}
+
+// ── 조작 ────────────────────────────────────────────
+function popup(x, y, title, opts, withName) {
+  closePop(); const p = document.createElement("div"); p.className = "pop"; p.style.left = Math.min(x, innerWidth - 300) + "px"; p.style.top = Math.min(y, innerHeight - 220) + "px";
+  p.innerHTML = `<button class="x" aria-label="닫기">×</button><h4>${esc(title)}</h4>${withName ? `<input id="popName" value="${esc(withName)}" placeholder="새 이름">` : ""}<div class="opt" style="margin-top:8px">${opts.map((o, i) => `<button class="btn ${i === 0 ? "pri" : ""} sm" data-i="${i}">${esc(o.label)}</button>`).join("")}</div>`;
+  document.body.append(p); S.pop = p; p.querySelector(".x").onclick = closePop;
+  p.querySelectorAll("[data-i]").forEach((b) => (b.onclick = () => { const name = p.querySelector("#popName")?.value.trim(); opts[+b.dataset.i].run(name); closePop(); }));
+  p.querySelector("#popName")?.focus();
+}
+function closePop() { S.pop?.remove(); S.pop = null; }
+function act(a) { S.actions.push(a); S.sel = null; render(); }
+function onDrop(srcId, dstId, x, y) {
+  if (srcId === dstId) return; const [sk, sn] = [srcId.split(":")[0], srcId.slice(srcId.indexOf(":") + 1)], dk = dstId.split(":")[0];
+  const nm = (id) => id.includes("|") ? id.split("|").pop() : id.slice(id.indexOf(":") + 1);
+  if (sk === "team" && dk === "team") popup(x, y, `${nm(srcId)} → ${nm(dstId)}`, [{ label: "통합해서 새 팀", run: (name) => act({ op: "MERGE_TEAM", a: srcId, b: dstId, name: name || nm(srcId) + "+" + nm(dstId) }) }, { label: `${nm(dstId)} 에 흡수`, run: () => act({ op: "ABSORB_TEAM", a: srcId, b: dstId }) }], nm(srcId) + "+" + nm(dstId));
+  else if (sk === "team" && dk === "dept") act({ op: "MOVE_TEAM", a: srcId, b: dstId });
+  else if (sk === "dept" && dk === "dept") popup(x, y, `${nm(srcId)} → ${nm(dstId)}`, [{ label: "통합해서 새 담당", run: (name) => act({ op: "MERGE_DEPT", a: srcId, b: dstId, name: name || nm(srcId) + "+" + nm(dstId) }) }, { label: `${nm(dstId)} 에 흡수 (팀 이동)`, run: () => act({ op: "ABSORB_DEPT", a: srcId, b: dstId }) }], nm(srcId) + "+" + nm(dstId));
+  else if (sk === "dept" && dk === "hq") act({ op: "MOVE_DEPT", a: srcId, b: dstId });
+  else if (sk === "hq" && dk === "hq") popup(x, y, `${nm(srcId)} + ${nm(dstId)}`, [{ label: "본부 통합", run: (name) => act({ op: "MERGE_HQ", a: srcId, b: dstId, name: name || nm(srcId) + "+" + nm(dstId) }) }], nm(srcId) + "+" + nm(dstId));
+}
+function bind() {
+  document.querySelectorAll("[data-tw]").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const id = b.dataset.tw; S.open.has(id) ? S.open.delete(id) : S.open.add(id); render(); }));
+  document.querySelectorAll("[data-abolish]").forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const id = b.dataset.abolish; act({ op: id.startsWith("team") ? "ABOLISH_TEAM" : "ABOLISH_DEPT", a: id }); }));
+  document.querySelectorAll('#tree .row[draggable="true"]').forEach((r) => { r.ondragstart = (e) => { e.dataTransfer.setData("text/plain", r.dataset.id); e.dataTransfer.effectAllowed = "move"; }; r.onclick = (e) => { if (e.target.closest("button")) return; if (S.sel && S.sel !== r.dataset.id && r.dataset.drop) { const s = S.sel; onDrop(s, r.dataset.id, e.clientX, e.clientY); } else { S.sel = S.sel === r.dataset.id ? null : r.dataset.id; render(); } }; });
+  document.querySelectorAll('#tree .row[data-drop]').forEach((r) => { r.ondragover = (e) => { e.preventDefault(); r.classList.add("drop"); }; r.ondragleave = () => r.classList.remove("drop"); r.ondrop = (e) => { e.preventDefault(); r.classList.remove("drop"); onDrop(e.dataTransfer.getData("text/plain"), r.dataset.id, e.clientX, e.clientY); }; if (!r.getAttribute("draggable")) r.onclick = (e) => { if (e.target.closest("button")) return; if (S.sel) onDrop(S.sel, r.dataset.id, e.clientX, e.clientY); }; });
+}
+$("#level").querySelectorAll("button").forEach((b) => (b.onclick = () => { S.level = b.dataset.l; S.sel = null; $("#level").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); render(); }));
+$("#view").querySelectorAll("button").forEach((b) => (b.onclick = () => { S.view = b.dataset.v; $("#view").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); render(); }));
+$("#undo").onclick = () => { S.actions.pop(); render(); }; $("#reset").onclick = () => { S.actions = []; S.sel = null; render(); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closePop(); S.sel = null; render(); } });
+// 표본 개편안: 처음 열었을 때 화면이 비어 있지 않도록
+S.open.add("dept:미디어사업본부|케이블방송사업담당"); S.open.add("dept:미디어사업본부|Btv서비스기획담당");
+window.__sim = { S, build, render };
+render();
+})();
+</script>
